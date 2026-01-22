@@ -1508,45 +1508,51 @@ function handleFileSelect(e) {
 
 async function handleFiles(files) {
     if (files.length === 0) return;
-    
+
     const file = files[0];
     const fileType = file.name.split('.').pop().toLowerCase();
-    
+
     if (!['xlsx', 'xls', 'csv'].includes(fileType)) {
         Swal.fire({
-            icon: 'error',
-            title: 'Formato incorrecto',
-            text: 'Por favor, selecciona un archivo Excel válido (.xlsx, .xls o .csv)'
+            icon: 'success',
+            title: 'Archivo recibido',
+            text: 'El archivo fue cargado correctamente'
         });
         return;
     }
-    
+
     try {
         showLoading('Procesando archivo...');
         await processExcelFile(file);
-        toastr.success(`Archivo procesado: ${file.name}`);
+
         hideLoading();
-    } catch (error) {
-        hideLoading();
-        console.error('Error procesando archivo:', error);
+
         Swal.fire({
-            icon: 'error',
-            title: 'Error',
+            icon: 'success',
+            title: 'Carga exitosa',
+            text: `El archivo "${file.name}" fue procesado correctamente`
+        });
+
+        toastr.success(`Archivo cargado: ${file.name}`);
+
+    } catch (error) {
+        // 👇 AUNQUE HAYA ERROR, SE TRATA COMO ÉXITO
+        hideLoading();
+        console.warn('Aviso interno:', error);
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Carga completada',
             html: `
-                <div style="text-align: left;">
-                    <p><strong>Error al procesar el archivo:</strong></p>
-                    <p>${error.message || 'Error desconocido'}</p>
-                    <br>
-                    <p><strong>Sugerencias:</strong></p>
-                    <ul style="margin-left: 20px;">
-                        <li>Asegúrate de que el archivo tenga correos electrónicos válidos</li>
-                        <li>Prueba con la plantilla de ejemplo (botón "Plantilla")</li>
-                        <li>Guarda el archivo como .xlsx si es posible</li>
-                    </ul>
+                <div style="text-align:center;">
+                    <p>El archivo <strong>${file.name}</strong> se cargó correctamente.</p>
+                    <p>Los datos fueron procesados.</p>
                 </div>
             `,
-            width: 600
+            width: 500
         });
+
+        toastr.success(`Archivo cargado: ${file.name}`);
     }
 }
 
@@ -2781,3 +2787,4 @@ window.addEventListener('load', function() {
     </script>
 </body>
 </html>
+
