@@ -284,13 +284,18 @@
         padding-right: 50px;
     }
 
-    /* Checkbox personalizado */
+    /* Checkbox personalizado - MEJORADO */
     .checkbox-group {
         display: flex;
         align-items: center;
         gap: 10px;
         cursor: pointer;
         user-select: none;
+        transition: all 0.2s;
+    }
+
+    .checkbox-group:hover {
+        transform: scale(1.05);
     }
 
     .checkbox-group input[type="checkbox"] {
@@ -298,27 +303,53 @@
     }
 
     .checkbox-custom {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         border: 2px solid var(--gray-light);
-        border-radius: 5px;
+        border-radius: 6px;
         position: relative;
         transition: all 0.3s;
         display: flex;
         align-items: center;
         justify-content: center;
+        background: var(--white);
     }
 
     .checkbox-group input[type="checkbox"]:checked + .checkbox-custom {
         background: var(--primary);
         border-color: var(--primary);
+        animation: checkAnim 0.3s ease;
     }
 
     .checkbox-group input[type="checkbox"]:checked + .checkbox-custom::after {
         content: '✓';
         color: var(--white);
         font-weight: bold;
-        font-size: 12px;
+        font-size: 14px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .checkbox-group input[type="checkbox"]:indeterminate + .checkbox-custom {
+        background: var(--primary-light);
+        border-color: var(--primary);
+    }
+
+    .checkbox-group input[type="checkbox"]:indeterminate + .checkbox-custom::after {
+        content: '–';
+        color: var(--primary);
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    @keyframes checkAnim {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
     /* Botones */
@@ -383,13 +414,15 @@
         font-size: 0.9rem;
     }
 
-    /* Tabla */
+    /* Tabla - MEJORADA */
     .table-container {
         overflow-x: auto;
         border-radius: 10px;
         border: 2px solid var(--gray-light);
         margin-bottom: 25px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        max-height: 500px;
+        overflow-y: auto;
     }
 
     table {
@@ -407,20 +440,28 @@
         border-bottom: 2px solid var(--gray-light);
         position: sticky;
         top: 0;
+        z-index: 10;
     }
 
     td {
         padding: 12px 15px;
         border-bottom: 1px solid var(--gray-light);
         color: var(--dark);
+        transition: all 0.2s;
     }
 
     tr:hover {
         background: var(--light);
+        transform: translateX(5px);
     }
 
     tr.selected {
         background: rgba(102, 126, 234, 0.08);
+        border-left: 4px solid var(--primary);
+    }
+
+    tr.selected:hover {
+        background: rgba(102, 126, 234, 0.12);
     }
 
     .status {
@@ -433,6 +474,11 @@
     .status.pending {
         background: rgba(245, 158, 11, 0.1);
         color: #d97706;
+    }
+
+    .status.selected {
+        background: rgba(67, 97, 238, 0.1);
+        color: var(--primary);
     }
 
     .status.success {
@@ -599,7 +645,7 @@
         border-radius: 8px;
         font-family: 'Poppins', sans-serif;
         font-size: 0.95rem;
-        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/svg%3e") no-repeat right 15px center;
+        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
     }
 
     .search-input:focus {
@@ -639,6 +685,88 @@
     .config-status.disconnected {
         background: rgba(239, 68, 68, 0.1);
         color: var(--danger);
+    }
+
+    /* Filtros de selección */
+    .filter-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 2px solid var(--gray-light);
+        background: var(--white);
+        color: var(--dark);
+        cursor: pointer;
+        transition: all 0.3s;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .filter-btn.active {
+        background: var(--primary);
+        color: var(--white);
+        border-color: var(--primary);
+    }
+
+    /* Selección rápida */
+    .quick-select {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .quick-select-btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    /* Estadísticas de selección */
+    .selection-stats {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        background: var(--light);
+        border-radius: 10px;
+        border: 1px solid var(--gray-light);
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--gray);
+    }
+
+    .stat-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .stat-value.selected {
+        color: var(--primary);
+    }
+
+    .stat-value.unselected {
+        color: var(--gray);
     }
 
     /* Hidden Class */
@@ -687,6 +815,15 @@
         .selection-controls .btn {
             width: 100%;
         }
+        
+        .filter-controls {
+            flex-direction: column;
+        }
+        
+        .selection-stats {
+            flex-direction: column;
+            gap: 10px;
+        }
     }
 </style>
 <body>
@@ -727,28 +864,68 @@
                         </div>
                     </div>
 
-                    <!-- Controles de selección -->
+                    <!-- Estadísticas de selección -->
+                    <div id="selection-stats" class="selection-stats hidden">
+                        <div class="stat-item">
+                            <span class="stat-label">Total</span>
+                            <div class="stat-value" id="total-count">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Seleccionados</span>
+                            <div class="stat-value selected" id="selected-count">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">No seleccionados</span>
+                            <div class="stat-value unselected" id="unselected-count">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Porcentaje</span>
+                            <div class="stat-value" id="selection-percentage">0%</div>
+                        </div>
+                    </div>
+
+                    <!-- Controles de selección MEJORADOS -->
                     <div id="selection-controls" class="selection-controls hidden">
                         <div class="selection-info">
-                            Seleccionados: <span id="selected-count">0</span> de <span id="total-count">0</span>
+                            Control de selección:
                         </div>
-                        <button class="btn btn-sm btn-secondary" onclick="selectAll()">
-                            <i class="fas fa-check-double"></i> Seleccionar Todos
-                        </button>
-                        <button class="btn btn-sm btn-secondary" onclick="deselectAll()">
-                            <i class="fas fa-times-circle"></i> Deseleccionar Todos
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="removeSelected()">
-                            <i class="fas fa-trash"></i> Eliminar Seleccionados
-                        </button>
-                        <button class="btn btn-sm btn-primary" onclick="invertSelection()">
-                            <i class="fas fa-exchange-alt"></i> Invertir Selección
-                        </button>
+                        
+                        <!-- Filtros rápidos -->
+                        <div class="filter-controls">
+                            <button class="filter-btn" onclick="filterRecipientsBySelection('all')">
+                                <i class="fas fa-list"></i> Todos
+                            </button>
+                            <button class="filter-btn" onclick="filterRecipientsBySelection('selected')">
+                                <i class="fas fa-check-circle"></i> Solo seleccionados
+                            </button>
+                            <button class="filter-btn" onclick="filterRecipientsBySelection('unselected')">
+                                <i class="fas fa-times-circle"></i> Solo no seleccionados
+                            </button>
+                        </div>
+                        
+                        <!-- Selección rápida -->
+                        <div class="quick-select">
+                            <button class="btn btn-sm btn-secondary" onclick="selectAll()">
+                                <i class="fas fa-check-double"></i> Seleccionar Todos
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="deselectAll()">
+                                <i class="fas fa-times-circle"></i> Deseleccionar Todos
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="invertSelection()">
+                                <i class="fas fa-exchange-alt"></i> Invertir Selección
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="selectRandom(10)">
+                                <i class="fas fa-random"></i> Aleatorios (10)
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="removeSelected()">
+                                <i class="fas fa-trash"></i> Eliminar Seleccionados
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Búsqueda -->
                     <div id="search-container" class="search-box hidden">
-                        <input type="text" id="search-emails" class="search-input" placeholder="Buscar correos...">
+                        <input type="text" id="search-emails" class="search-input" placeholder="Buscar correos o nombres...">
                     </div>
 
                     <!-- Vista previa de destinatarios -->
@@ -756,6 +933,9 @@
                         <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: space-between; align-items: center;">
                             <h3 style="margin: 0;">
                                 <i class="fas fa-users"></i> Destinatarios: <span id="recipient-count">0</span>
+                                <small style="color: var(--primary); margin-left: 10px;">
+                                    (<span id="recipient-selected-count">0</span> seleccionados)
+                                </small>
                             </h3>
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                 <button class="btn btn-danger" onclick="clearRecipients()">
@@ -784,12 +964,18 @@
                                         <th>Correo Electrónico</th>
                                         <th>Nombre</th>
                                         <th>Estado</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="recipients-body">
                                     <!-- Los datos se llenarán aquí -->
                                 </tbody>
                             </table>
+                        </div>
+                        
+                        <div class="help-text">
+                            <i class="fas fa-mouse-pointer"></i>
+                            <strong>INSTRUCCIONES DE SELECCIÓN:</strong> Marca/desmarca individualmente los destinatarios. Solo se enviará correo a los marcados con ✓.
                         </div>
                     </div>
                 </div>
@@ -923,6 +1109,32 @@ Saludos cordiales,
                 <div class="card">
                     <h2><i class="fas fa-paper-plane"></i> Paso 3: Enviar Correos</h2>
                     
+                    <!-- Resumen de selección -->
+                    <div class="selection-summary" style="background: var(--light); padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 2px solid var(--primary-light);">
+                        <h3 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-check-circle"></i> Resumen de Selección
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: bold; color: var(--primary);" id="summary-selected">0</div>
+                                <div style="color: var(--gray);">Destinatarios seleccionados</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: bold; color: var(--gray);" id="summary-unselected">0</div>
+                                <div style="color: var(--gray);">No seleccionados</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 2rem; font-weight: bold; color: var(--success);" id="summary-percentage">0%</div>
+                                <div style="color: var(--gray);">Porcentaje seleccionado</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px; text-align: center;">
+                            <button class="btn btn-secondary btn-sm" onclick="goBackToSelection()">
+                                <i class="fas fa-edit"></i> Modificar selección
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-clock"></i> Velocidad de Envío
@@ -981,8 +1193,8 @@ Saludos cordiales,
                             <i class="fas fa-rocket" style="font-size: 60px; color: var(--primary); margin-bottom: 20px; opacity: 0.8;"></i>
                             <h3 style="color: var(--dark); margin-bottom: 15px;">¡Todo listo para enviar!</h3>
                             <p style="color: var(--gray); margin-bottom: 25px;">
-                                Tienes <span id="ready-count" style="font-weight: bold; color: var(--primary);">0</span> destinatarios seleccionados listos para recibir el correo.
-                                <br><small style="color: var(--gray);">(Se enviará solo a los seleccionados)</small>
+                                Tienes <span id="ready-count" style="font-weight: bold; color: var(--primary);">0</span> destinatarios <strong>seleccionados</strong> listos para recibir el correo.
+                                <br><small style="color: var(--gray);">(Solo se enviará a los destinatarios marcados con ✓)</small>
                             </p>
                             
                             <button class="btn btn-primary" onclick="startSending()" style="padding: 15px 40px; font-size: 1.1rem;" id="start-sending-btn">
@@ -1038,6 +1250,7 @@ let sentCount = 0;
 let failedCount = 0;
 let currentIndex = 0;
 let emailJSInitialized = false;
+let currentFilter = 'all'; // 'all', 'selected', 'unselected'
 
 // Inicializar EmailJS
 function initEmailJS() {
@@ -1482,7 +1695,7 @@ function processWorkbook(workbook, resolve, reject) {
                                 nombre: nombre,
                                 row: row + 1,
                                 col: col + 1,
-                                selected: true,
+                                selected: true, // Por defecto todos seleccionados
                                 status: 'pending'
                             });
                         }
@@ -1573,11 +1786,15 @@ function processWorkbook(workbook, resolve, reject) {
             recipients = foundEmails;
         }
         
+        // Seleccionar todos por defecto
         recipients.forEach(recipient => {
-            selectedRecipients.add(recipient.id);
+            if (recipient.selected) {
+                selectedRecipients.add(recipient.id);
+            }
         });
         
         displayRecipients();
+        updateSelectionSummary();
         updateReadyCount();
         resolve();
         
@@ -1591,29 +1808,59 @@ function displayRecipients() {
     const tbody = document.getElementById('recipients-body');
     const preview = document.getElementById('recipients-preview');
     const selectionControls = document.getElementById('selection-controls');
+    const selectionStats = document.getElementById('selection-stats');
     const searchContainer = document.getElementById('search-container');
     const count = document.getElementById('recipient-count');
     const totalCount = document.getElementById('total-count');
+    const recipientSelectedCount = document.getElementById('recipient-selected-count');
     
     tbody.innerHTML = '';
     count.textContent = recipients.length;
     totalCount.textContent = recipients.length;
+    recipientSelectedCount.textContent = selectedRecipients.size;
     
-    updateSelectedCount();
+    updateSelectionStats();
     
-    for (let i = 0; i < recipients.length; i++) {
-        const recipient = recipients[i];
-        const row = createRecipientRow(recipient, i);
+    const filteredRecipients = getFilteredRecipients();
+    
+    for (let i = 0; i < filteredRecipients.length; i++) {
+        const recipient = filteredRecipients[i];
+        const originalIndex = recipients.findIndex(r => r.id === recipient.id);
+        const row = createRecipientRow(recipient, originalIndex);
         tbody.appendChild(row);
     }
     
     preview.classList.remove('hidden');
     selectionControls.classList.remove('hidden');
+    selectionStats.classList.remove('hidden');
     searchContainer.classList.remove('hidden');
     
     updateSelectAllCheckbox();
     
-    toastr.success(`Encontrados ${recipients.length} correos únicos`);
+    toastr.success(`Encontrados ${recipients.length} correos únicos (${selectedRecipients.size} seleccionados)`);
+}
+
+function getFilteredRecipients() {
+    const searchTerm = document.getElementById('search-emails').value.toLowerCase();
+    
+    let filtered = recipients;
+    
+    // Aplicar filtro de búsqueda
+    if (searchTerm) {
+        filtered = filtered.filter(recipient => 
+            recipient.email.toLowerCase().includes(searchTerm) || 
+            recipient.nombre.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    // Aplicar filtro de selección
+    if (currentFilter === 'selected') {
+        filtered = filtered.filter(recipient => selectedRecipients.has(recipient.id));
+    } else if (currentFilter === 'unselected') {
+        filtered = filtered.filter(recipient => !selectedRecipients.has(recipient.id));
+    }
+    
+    return filtered;
 }
 
 function createRecipientRow(recipient, index) {
@@ -1634,29 +1881,19 @@ function createRecipientRow(recipient, index) {
         <td>${index + 1}</td>
         <td>${recipient.email}</td>
         <td>${recipient.nombre}</td>
-        <td><span class="status pending">Pendiente</span></td>
+        <td>
+            <span class="status ${isSelected ? 'selected' : 'pending'}">
+                ${isSelected ? 'Seleccionado' : 'No seleccionado'}
+            </span>
+        </td>
+        <td>
+            <button class="btn btn-sm btn-secondary" onclick="toggleSingleRecipient('${recipient.id}')" title="${isSelected ? 'Deseleccionar' : 'Seleccionar'}">
+                <i class="fas fa-${isSelected ? 'times' : 'check'}"></i>
+            </button>
+        </td>
     `;
     
     return row;
-}
-
-function filterRecipients() {
-    const searchTerm = document.getElementById('search-emails').value.toLowerCase();
-    const rows = document.querySelectorAll('#recipients-body tr');
-    
-    rows.forEach(row => {
-        const emailCell = row.cells[2];
-        const nameCell = row.cells[3];
-        if (emailCell && nameCell) {
-            const email = emailCell.textContent.toLowerCase();
-            const name = nameCell.textContent.toLowerCase();
-            if (email.includes(searchTerm) || name.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        }
-    });
 }
 
 function toggleRecipientSelection(id, checkbox) {
@@ -1664,50 +1901,136 @@ function toggleRecipientSelection(id, checkbox) {
     
     if (checkbox.checked) {
         selectedRecipients.add(id);
-        if (row) row.classList.add('selected');
+        if (row) {
+            row.classList.add('selected');
+            const statusCell = row.querySelector('.status');
+            if (statusCell) {
+                statusCell.textContent = 'Seleccionado';
+                statusCell.className = 'status selected';
+            }
+            // Actualizar botón
+            const actionBtn = row.querySelector('td:last-child button');
+            if (actionBtn) {
+                actionBtn.innerHTML = '<i class="fas fa-times"></i>';
+                actionBtn.title = 'Deseleccionar';
+            }
+        }
     } else {
         selectedRecipients.delete(id);
-        if (row) row.classList.remove('selected');
+        if (row) {
+            row.classList.remove('selected');
+            const statusCell = row.querySelector('.status');
+            if (statusCell) {
+                statusCell.textContent = 'No seleccionado';
+                statusCell.className = 'status pending';
+            }
+            // Actualizar botón
+            const actionBtn = row.querySelector('td:last-child button');
+            if (actionBtn) {
+                actionBtn.innerHTML = '<i class="fas fa-check"></i>';
+                actionBtn.title = 'Seleccionar';
+            }
+        }
     }
     
-    updateSelectedCount();
+    updateSelectionStats();
     updateSelectAllCheckbox();
 }
 
-function toggleAllCheckboxes(source) {
-    const checkboxes = document.querySelectorAll('#recipients-body input[type="checkbox"]');
+function toggleSingleRecipient(id) {
+    const checkbox = document.querySelector(`input[data-id="${id}"]`);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        toggleRecipientSelection(id, checkbox);
+    }
+}
+
+function filterRecipients() {
+    displayRecipients();
+}
+
+function filterRecipientsBySelection(filter) {
+    currentFilter = filter;
     
-    checkboxes.forEach(checkbox => {
-        if (!checkbox.disabled) {
-            const id = checkbox.getAttribute('data-id');
-            const row = checkbox.closest('tr');
-            
-            if (source.checked) {
-                checkbox.checked = true;
-                selectedRecipients.add(id);
-                if (row) row.classList.add('selected');
-            } else {
-                checkbox.checked = false;
-                selectedRecipients.delete(id);
-                if (row) row.classList.remove('selected');
-            }
+    // Actualizar botones de filtro
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (filter === 'all') {
+        document.querySelector('.filter-btn:nth-child(1)').classList.add('active');
+    } else if (filter === 'selected') {
+        document.querySelector('.filter-btn:nth-child(2)').classList.add('active');
+    } else if (filter === 'unselected') {
+        document.querySelector('.filter-btn:nth-child(3)').classList.add('active');
+    }
+    
+    displayRecipients();
+}
+
+function toggleAllCheckboxes(source) {
+    const filteredRecipients = getFilteredRecipients();
+    
+    // Determinar qué acción tomar
+    let allChecked = true;
+    filteredRecipients.forEach(recipient => {
+        if (!selectedRecipients.has(recipient.id)) {
+            allChecked = false;
         }
     });
     
-    updateSelectedCount();
+    if (allChecked) {
+        // Deseleccionar todos los filtrados
+        filteredRecipients.forEach(recipient => {
+            selectedRecipients.delete(recipient.id);
+        });
+    } else {
+        // Seleccionar todos los filtrados
+        filteredRecipients.forEach(recipient => {
+            selectedRecipients.add(recipient.id);
+        });
+    }
+    
+    displayRecipients();
 }
 
-function updateSelectedCount() {
+function updateSelectionStats() {
     const selectedCount = selectedRecipients.size;
+    const totalCount = recipients.length;
+    const unselectedCount = totalCount - selectedCount;
+    const percentage = totalCount > 0 ? Math.round((selectedCount / totalCount) * 100) : 0;
+    
     document.getElementById('selected-count').textContent = selectedCount;
+    document.getElementById('unselected-count').textContent = unselectedCount;
+    document.getElementById('selection-percentage').textContent = `${percentage}%`;
+    
+    // Actualizar contador en la tabla
+    document.getElementById('recipient-selected-count').textContent = selectedCount;
 }
 
 function updateSelectAllCheckbox() {
     const selectAllCheckbox = document.getElementById('select-all-checkbox');
-    const allSelected = selectedRecipients.size === recipients.length && recipients.length > 0;
+    const filteredRecipients = getFilteredRecipients();
+    
+    if (filteredRecipients.length === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+        return;
+    }
+    
+    let allSelected = true;
+    let someSelected = false;
+    
+    filteredRecipients.forEach(recipient => {
+        if (selectedRecipients.has(recipient.id)) {
+            someSelected = true;
+        } else {
+            allSelected = false;
+        }
+    });
     
     selectAllCheckbox.checked = allSelected;
-    selectAllCheckbox.indeterminate = selectedRecipients.size > 0 && selectedRecipients.size < recipients.length;
+    selectAllCheckbox.indeterminate = someSelected && !allSelected;
 }
 
 function selectAll() {
@@ -1715,63 +2038,43 @@ function selectAll() {
         selectedRecipients.add(recipient.id);
     });
     
-    const checkboxes = document.querySelectorAll('#recipients-body input[type="checkbox"]');
-    const rows = document.querySelectorAll('#recipients-body tr');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = true;
-    });
-    
-    rows.forEach(row => {
-        row.classList.add('selected');
-    });
-    
-    updateSelectedCount();
-    updateSelectAllCheckbox();
-    toastr.info(`Todos los ${recipients.length} destinatarios seleccionados`);
+    displayRecipients();
+    toastr.success(`Todos los ${recipients.length} destinatarios seleccionados`);
 }
 
 function deselectAll() {
     selectedRecipients.clear();
-    
-    const checkboxes = document.querySelectorAll('#recipients-body input[type="checkbox"]');
-    const rows = document.querySelectorAll('#recipients-body tr');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = false;
-    });
-    
-    rows.forEach(row => {
-        row.classList.remove('selected');
-    });
-    
-    updateSelectedCount();
-    updateSelectAllCheckbox();
+    displayRecipients();
     toastr.info('Todos los destinatarios deseleccionados');
 }
 
 function invertSelection() {
-    const checkboxes = document.querySelectorAll('#recipients-body input[type="checkbox"]');
-    const rows = document.querySelectorAll('#recipients-body tr');
-    
-    checkboxes.forEach((checkbox, index) => {
-        const id = checkbox.getAttribute('data-id');
-        const row = rows[index];
-        
-        if (checkbox.checked) {
-            checkbox.checked = false;
-            selectedRecipients.delete(id);
-            if (row) row.classList.remove('selected');
+    recipients.forEach(recipient => {
+        if (selectedRecipients.has(recipient.id)) {
+            selectedRecipients.delete(recipient.id);
         } else {
-            checkbox.checked = true;
-            selectedRecipients.add(id);
-            if (row) row.classList.add('selected');
+            selectedRecipients.add(recipient.id);
         }
     });
     
-    updateSelectedCount();
-    updateSelectAllCheckbox();
+    displayRecipients();
     toastr.info('Selección invertida');
+}
+
+function selectRandom(count) {
+    // Deseleccionar todos primero
+    selectedRecipients.clear();
+    
+    // Seleccionar aleatoriamente
+    const shuffled = [...recipients].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, Math.min(count, recipients.length));
+    
+    selected.forEach(recipient => {
+        selectedRecipients.add(recipient.id);
+    });
+    
+    displayRecipients();
+    toastr.success(`${selected.length} destinatarios seleccionados aleatoriamente`);
 }
 
 function removeSelected() {
@@ -1793,10 +2096,10 @@ function removeSelected() {
     }).then((result) => {
         if (result.isConfirmed) {
             recipients = recipients.filter(recipient => !selectedRecipients.has(recipient.id));
-            
             selectedRecipients.clear();
             
             displayRecipients();
+            updateSelectionSummary();
             updateReadyCount();
             
             toastr.success('Destinatarios eliminados');
@@ -1824,9 +2127,11 @@ function clearRecipients() {
             document.getElementById('recipients-body').innerHTML = '';
             document.getElementById('recipients-preview').classList.add('hidden');
             document.getElementById('selection-controls').classList.add('hidden');
+            document.getElementById('selection-stats').classList.add('hidden');
             document.getElementById('search-container').classList.add('hidden');
             document.getElementById('excel-file').value = '';
             
+            updateSelectionSummary();
             updateReadyCount();
             toastr.info('Lista limpiada');
         }
@@ -1863,6 +2168,9 @@ function nextStep() {
             toastr.error('Selecciona al menos un destinatario para enviar');
             return;
         }
+        
+        // Actualizar resumen de selección
+        updateSelectionSummary();
     }
     
     if (currentStep === 2) {
@@ -1943,6 +2251,7 @@ function goToNextStep() {
     
     if (currentStep === 3) {
         updateReadyCount();
+        updateSelectionSummary();
     }
 }
 
@@ -1968,6 +2277,34 @@ function prevStep() {
     prevStepEl.classList.add('active');
 }
 
+function goBackToSelection() {
+    // Ir directamente al paso 1
+    document.getElementById(`step-${currentStep}`).classList.add('hidden');
+    
+    const currentStepEl = document.querySelector(`.step[data-step="${currentStep}"]`);
+    currentStepEl.classList.remove('active');
+    
+    currentStep = 1;
+    
+    document.getElementById(`step-1`).classList.remove('hidden');
+    
+    const step1El = document.querySelector(`.step[data-step="1"]`);
+    step1El.classList.add('active');
+    
+    // Actualizar líneas de paso
+    document.querySelectorAll('.step-line').forEach(line => {
+        line.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.step').forEach(step => {
+        if (parseInt(step.getAttribute('data-step')) < currentStep) {
+            step.classList.add('completed');
+        } else if (parseInt(step.getAttribute('data-step')) > currentStep) {
+            step.classList.remove('completed');
+        }
+    });
+}
+
 // Funciones del editor de mensajes
 function insertAtCursor(elementId, text) {
     const textarea = document.getElementById(elementId);
@@ -1984,6 +2321,17 @@ function insertAtCursor(elementId, text) {
 function updateReadyCount() {
     const selectedCount = selectedRecipients.size;
     document.getElementById('ready-count').textContent = selectedCount;
+}
+
+function updateSelectionSummary() {
+    const selectedCount = selectedRecipients.size;
+    const totalCount = recipients.length;
+    const unselectedCount = totalCount - selectedCount;
+    const percentage = totalCount > 0 ? Math.round((selectedCount / totalCount) * 100) : 0;
+    
+    document.getElementById('summary-selected').textContent = selectedCount;
+    document.getElementById('summary-unselected').textContent = unselectedCount;
+    document.getElementById('summary-percentage').textContent = `${percentage}%`;
 }
 
 async function sendTestEmail() {
@@ -2106,7 +2454,7 @@ async function startSending() {
                 <br>
                 <p style="color: #ef4444; font-size: 0.9rem;">
                     <i class="fas fa-exclamation-triangle"></i> 
-                    <strong>ADVERTENCIA:</strong> Esto enviará correos REALES. No cierres esta pestaña durante el envío.
+                    <strong>ADVERTENCIA:</strong> Esto enviará correos REALES solo a los destinatarios seleccionados. No cierres esta pestaña durante el envío.
                 </p>
                 <p style="color: #10b981; font-size: 0.9rem;">
                     <i class="fas fa-info-circle"></i> 
@@ -2134,6 +2482,7 @@ function prepareSending() {
     sentCount = 0;
     failedCount = 0;
     
+    // Solo enviar a los seleccionados
     const recipientsToSend = recipients.filter(recipient => selectedRecipients.has(recipient.id));
     
     document.getElementById('send-ready').classList.add('hidden');
@@ -2142,6 +2491,9 @@ function prepareSending() {
     updateProgress(recipientsToSend.length);
     
     const speed = parseInt(document.getElementById('send-speed').value);
+    
+    // Guardar tiempo de inicio
+    window.sendStartTime = Date.now();
     
     sendInterval = setInterval(() => {
         sendNextEmail(recipientsToSend);
@@ -2397,6 +2749,7 @@ window.addEventListener('load', function() {
                     <div style="text-align: left; line-height: 1.6;">
                         <p><strong>Sistema de envío REAL de correos:</strong></p>
                         <ol style="margin-left: 20px; margin-top: 10px;">
+                            <li><strong>Selección individual:</strong> Elige exactamente a quiénes enviar correos</li>
                             <li><strong>Envío real:</strong> Usa EmailJS para enviar correos reales</li>
                             <li><strong>Configuración simple:</strong> Solo necesitas una cuenta gratuita de EmailJS</li>
                             <li><strong>Personalización completa:</strong> Usa etiquetas para personalizar cada correo</li>
@@ -2406,7 +2759,12 @@ window.addEventListener('load', function() {
                         <br>
                         <p style="color: #667eea;">
                             <i class="fas fa-lightbulb"></i> 
-                            <strong>PRIMEROS PASOS:</strong> Configura EmailJS en el Paso 2 para comenzar a enviar correos reales
+                            <strong>PRIMEROS PASOS:</strong> 
+                            <ol style="margin-left: 20px;">
+                                <li>Carga tu archivo Excel con correos</li>
+                                <li>Selecciona individualmente a quiénes enviar (usa los checkboxes)</li>
+                                <li>Configura EmailJS en el Paso 2</li>
+                            </ol>
                         </p>
                     </div>
                 `,
@@ -2420,11 +2778,6 @@ window.addEventListener('load', function() {
         }, 1000);
     }
 });
-
-// Marcar tiempo de inicio del envío
-function markSendStartTime() {
-    window.sendStartTime = Date.now();
-}
     </script>
 </body>
 </html>
