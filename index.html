@@ -1315,6 +1315,16 @@ function testEmailJSConnection() {
         emailjs.init(userId);
         
         // Probar con un correo de prueba
+        const testParams = {
+            to_name: "Usuario de Prueba",
+            to_email: "test@example.com",
+            from_name: "MailMaster",
+            from_email: "test@mailmaster.com",
+            subject: "Prueba de conexión EmailJS",
+            message: "Esta es una prueba de conexión con EmailJS",
+            reply_to: "test@mailmaster.com"
+        };
+        
         // Intentar enviar (pero no realmente, solo probar la conexión)
         emailjs.send(serviceId, templateId, testParams)
             .then(function(response) {
@@ -2777,4 +2787,3 @@ window.addEventListener('load', function() {
     </script>
 </body>
 </html>
-
