@@ -2395,38 +2395,50 @@ async function sendTestEmail() {
 
 async function startSending() {
     const selectedCount = selectedRecipients.size;
-    
-    if (selectedCount === 0) {
-        toastr.error('No hay destinatarios seleccionados para enviar');
+
+    // 🔒 Validación mínima: al menos 1 seleccionado
+    if (selectedCount < 1) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Sin destinatarios',
+            text: 'Selecciona al menos un destinatario para enviar el correo'
+        });
         return;
     }
-    
+
+    // 🚫 Evitar envíos duplicados
     if (isSending) {
         toastr.warning('Ya hay un envío en progreso');
         return;
     }
-    
+
+    // ⚙️ EmailJS configurado
     if (!emailJSInitialized) {
-        toastr.error('Primero configura EmailJS para enviar correos');
+        Swal.fire({
+            icon: 'error',
+            title: 'EmailJS no configurado',
+            text: 'Primero configura EmailJS antes de enviar correos'
+        });
         return;
     }
-    
-    // Confirmación final
+
+    // 📬 Confirmación final
     Swal.fire({
-        title: '¿Iniciar envío masivo REAL?',
+        title: '¿Iniciar envío REAL?',
         html: `
-            <div style="text-align: left;">
+            <div style="text-align:left">
                 <p><strong>Destinatarios seleccionados:</strong> ${selectedCount}</p>
                 <p><strong>Remitente:</strong> ${document.getElementById('sender-email').value}</p>
                 <p><strong>Asunto:</strong> ${document.getElementById('email-subject').value}</p>
-                <br>
-                <p style="color: #ef4444; font-size: 0.9rem;">
-                    <i class="fas fa-exclamation-triangle"></i> 
-                    <strong>ADVERTENCIA:</strong> Esto enviará correos REALES solo a los destinatarios seleccionados. No cierres esta pestaña durante el envío.
+                <hr>
+                <p style="color:#ef4444;font-size:.9rem">
+                    ⚠️ Se enviarán correos reales. No cierres esta pestaña.
                 </p>
-                <p style="color: #10b981; font-size: 0.9rem;">
-                    <i class="fas fa-info-circle"></i> 
-                    Tiempo estimado: ${Math.ceil(selectedCount * parseInt(document.getElementById('send-speed').value) / 1000 / 60)} minutos
+                <p style="color:#10b981;font-size:.9rem">
+                    ⏱ Tiempo estimado: 
+                    ${Math.ceil(
+                        selectedCount * parseInt(document.getElementById('send-speed').value) / 1000 / 60
+                    )} min
                 </p>
             </div>
         `,
@@ -2434,39 +2446,41 @@ async function startSending() {
         showCancelButton: true,
         confirmButtonColor: '#10b981',
         cancelButtonColor: '#ef4444',
-        confirmButtonText: 'Sí, iniciar envío REAL',
+        confirmButtonText: 'Sí, enviar',
         cancelButtonText: 'Cancelar',
         width: 500
-    }).then((result) => {
+    }).then(result => {
         if (result.isConfirmed) {
             prepareSending();
         }
     });
 }
+    
 
 function prepareSending() {
     isSending = true;
     currentIndex = 0;
     sentCount = 0;
     failedCount = 0;
-    
-    // Solo enviar a los seleccionados
-    const recipientsToSend = recipients.filter(recipient => selectedRecipients.has(recipient.id));
-    
+
+    // ✅ FIX: asegurar comparación correcta de IDs
+    const recipientsToSend = recipients.filter(r =>
+        selectedRecipients.has(String(r.id))
+    );
+
     document.getElementById('send-ready').classList.add('hidden');
     document.getElementById('progress-container').classList.remove('hidden');
-    
+
     updateProgress(recipientsToSend.length);
-    
+
     const speed = parseInt(document.getElementById('send-speed').value);
-    
-    // Guardar tiempo de inicio
     window.sendStartTime = Date.now();
-    
+
     sendInterval = setInterval(() => {
         sendNextEmail(recipientsToSend);
     }, speed);
 }
+
 
 async function sendNextEmail(recipientsToSend) {
     if (currentIndex >= recipientsToSend.length) {
@@ -2749,3 +2763,4 @@ window.addEventListener('load', function() {
     </script>
 </body>
 </html>
+
