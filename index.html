@@ -577,83 +577,6 @@
         color: var(--dark);
     }
 
-    /* Tags */
-    .tags-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .tag {
-        padding: 8px 15px;
-        background: var(--primary-light);
-        color: var(--primary);
-        border-radius: 20px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        transition: all 0.3s;
-        border: none;
-        font-family: 'Poppins', sans-serif;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .tag:hover {
-        background: var(--primary);
-        color: var(--white);
-        transform: translateY(-2px);
-    }
-
-    /* Footer */
-    .footer {
-        text-align: center;
-        padding: 20px;
-        color: var(--gray);
-        border-top: 2px solid var(--gray-light);
-        background: var(--light);
-    }
-
-    /* Help Text */
-    .help-text {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--gray);
-        font-size: 0.9rem;
-        margin-top: 8px;
-        padding: 10px;
-        background: var(--light);
-        border-radius: 8px;
-        border-left: 3px solid var(--primary);
-    }
-
-    .help-text i {
-        color: var(--primary);
-    }
-
-    /* Search Box */
-    .search-box {
-        margin-bottom: 20px;
-    }
-
-    .search-input {
-        width: 100%;
-        padding: 12px 40px 12px 15px;
-        border: 2px solid var(--gray-light);
-        border-radius: 8px;
-        font-family: 'Poppins', sans-serif;
-        font-size: 0.95rem;
-        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
-    }
-
-    .search-input:focus {
-        outline: none;
-        border-color: var(--primary);
-        background-color: var(--white);
-    }
-
     /* Configuración EmailJS */
     .emailjs-config {
         background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
@@ -981,20 +904,25 @@
                 </div>
             </div>
 
-            <!-- Paso 2: Escribir Mensaje -->
+            <!-- Paso 2: Configurar EmailJS -->
             <div id="step-2" class="step-content hidden">
                 <div class="card">
-                    <h2><i class="fas fa-edit"></i> Paso 2: Escribir tu Mensaje</h2>
+                    <h2><i class="fas fa-cogs"></i> Paso 2: Configurar EmailJS</h2>
                     
                     <!-- Configuración EmailJS -->
                     <div class="card emailjs-config" id="emailjs-config">
                         <div class="config-header">
                             <h3 style="margin: 0; display: flex; align-items: center; gap: 10px;">
-                                <i class="fas fa-cogs"></i> Configuración EmailJS
+                                <i class="fas fa-envelope"></i> Configuración EmailJS
                             </h3>
                             <div id="emailjs-status" class="config-status disconnected">
                                 <i class="fas fa-times-circle"></i> No configurado
                             </div>
+                        </div>
+                        
+                        <div class="help-text" style="margin-bottom: 25px;">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>IMPORTANTE:</strong> El mensaje ya está predeterminado en tu plantilla de EmailJS. Solo necesitas configurar estas credenciales.
                         </div>
                         
                         <div class="form-group">
@@ -1020,86 +948,34 @@
                                 <i class="fas fa-file-signature"></i> Template ID
                             </label>
                             <input type="text" id="emailjs-template-id" class="form-control" placeholder="template_xxxxxxxx">
+                            <div class="help-text">
+                                <i class="fas fa-lightbulb"></i>
+                                <strong>IMPORTANTE:</strong> Tu plantilla debe contener estas variables: {{to_name}}, {{to_email}}, {{from_name}}, {{from_email}}, {{subject}}, {{message}}, {{reply_to}}
+                            </div>
                         </div>
                         
-                        <div style="display: flex; gap: 10px; margin-top: 20px;">
-                            <button class="btn btn-primary" onclick="testEmailJSConnection()">
+                        <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="showEmailJSInstructions()">
+                                <i class="fas fa-question-circle"></i> ¿Cómo configurar?
+                            </button>
+                            <button class="btn btn-success" onclick="testEmailJSConnection()">
                                 <i class="fas fa-plug"></i> Probar Conexión
                             </button>
-                            <button class="btn btn-success" onclick="saveEmailJSConfig()">
+                            <button class="btn btn-secondary" onclick="saveEmailJSConfig()">
                                 <i class="fas fa-save"></i> Guardar Configuración
                             </button>
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-user"></i> Tu Nombre
-                        </label>
-                        <input type="text" id="sender-name" class="form-control" placeholder="Tu nombre o empresa" value="Mi Empresa">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-at"></i> Tu Correo (Remitente)
-                        </label>
-                        <input type="email" id="sender-email" class="form-control" placeholder="tucorreo@empresa.com" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-tag"></i> Asunto del Correo
-                        </label>
-                        <input type="text" id="email-subject" class="form-control" placeholder="Asunto importante" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">
-                            <i class="fas fa-envelope"></i> Mensaje
-                        </label>
-                        <div class="tags-container">
-                            <button class="tag" data-tag="{nombre}">
-                                <i class="fas fa-user"></i> Nombre
-                            </button>
-                            <button class="tag" data-tag="{email}">
-                                <i class="fas fa-envelope"></i> Email
-                            </button>
-                            <button class="tag" data-tag="{fecha}">
-                                <i class="fas fa-calendar"></i> Fecha
-                            </button>
-                            <button class="tag" data-tag="{numero}">
-                                <i class="fas fa-hashtag"></i> Número
-                            </button>
-                            <button class="tag" data-tag="{tu_nombre}">
-                                <i class="fas fa-signature"></i> Tu Nombre
-                            </button>
-                            <button class="tag" data-tag="{tu_empresa}">
-                                <i class="fas fa-building"></i> Tu Empresa
-                            </button>
+                        
+                        <div style="margin-top: 25px; padding-top: 25px; border-top: 2px solid var(--gray-light);">
+                            <div style="display: flex; gap: 15px; justify-content: space-between;">
+                                <button class="btn btn-secondary" onclick="prevStep()">
+                                    <i class="fas fa-arrow-left"></i> Atrás
+                                </button>
+                                <button class="btn btn-success" onclick="nextStep()">
+                                    <i class="fas fa-arrow-right"></i> Continuar al Envío
+                                </button>
+                            </div>
                         </div>
-                        <textarea id="email-message" class="form-control" placeholder="Escribe tu mensaje aquí..." rows="10">
-Estimado/a {nombre},
-
-Esperamos que este mensaje le encuentre bien. 
-
-Este es un mensaje personalizado enviado a {email} el día {fecha}.
-
-Saludos cordiales,
-{tu_nombre}
-{tu_empresa}</textarea>
-                        <div class="help-text">
-                            <i class="fas fa-lightbulb"></i>
-                            Usa las etiquetas para personalizar cada correo. Se reemplazarán automáticamente.
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px; display: flex; gap: 15px; justify-content: space-between;">
-                        <button class="btn btn-secondary" onclick="prevStep()">
-                            <i class="fas fa-arrow-left"></i> Atrás
-                        </button>
-                        <button class="btn btn-success" onclick="nextStep()">
-                            <i class="fas fa-arrow-right"></i> Continuar al Envío
-                        </button>
                     </div>
                 </div>
             </div>
@@ -1411,15 +1287,17 @@ function showEmailJSInstructions() {
                 <ul style="margin-left: 20px; margin-top: 10px;">
                     <li><code>{{to_name}}</code> - Nombre del destinatario</li>
                     <li><code>{{to_email}}</code> - Correo del destinatario</li>
-                    <li><code>{{from_name}}</code> - Tu nombre</li>
-                    <li><code>{{from_email}}</code> - Tu correo</li>
+                    <li><code>{{from_name}}</code> - Tu nombre (de la plantilla de EmailJS)</li>
+                    <li><code>{{from_email}}</code> - Tu correo (de la plantilla de EmailJS)</li>
                     <li><code>{{subject}}</code> - Asunto del correo</li>
-                    <li><code>{{message}}</code> - Mensaje del correo</li>
+                    <li><code>{{message}}</code> - Mensaje del correo (predeterminado en EmailJS)</li>
                     <li><code>{{reply_to}}</code> - Correo para respuesta</li>
                 </ul>
                 <p><strong>Paso 4:</strong> Copia los IDs del dashboard y pégalos en los campos de configuración</p>
+                <p><strong>Paso 5:</strong> ¡Listo! El mensaje ya está predeterminado en tu plantilla de EmailJS</p>
                 <br>
                 <p style="color: #10b981;"><i class="fas fa-lightbulb"></i> <strong>PLAN GRATUITO:</strong> 200 correos/mes gratuitos</p>
+                <p style="color: #4361ee;"><i class="fas fa-exclamation-circle"></i> <strong>IMPORTANTE:</strong> No necesitas escribir el mensaje aquí, ya está en tu plantilla de EmailJS</p>
             </div>
         `,
         width: 600,
@@ -1458,27 +1336,8 @@ function initApp() {
     
     dropArea.addEventListener('drop', handleDrop, false);
     
-    // Configurar etiquetas
-    document.querySelectorAll('.tag').forEach(tag => {
-        tag.addEventListener('click', function() {
-            const tagText = this.getAttribute('data-tag');
-            insertAtCursor('email-message', tagText);
-        });
-    });
-    
     // Configurar búsqueda
     document.getElementById('search-emails').addEventListener('input', filterRecipients);
-    
-    // Botón de instrucciones EmailJS
-    const configCard = document.getElementById('emailjs-config');
-    const helpBtn = document.createElement('button');
-    helpBtn.className = 'btn btn-sm btn-secondary';
-    helpBtn.innerHTML = '<i class="fas fa-question-circle"></i> ¿Cómo configurar?';
-    helpBtn.onclick = showEmailJSInstructions;
-    configCard.querySelector('.config-header').appendChild(helpBtn);
-    
-    // Cargar datos guardados
-    loadSavedData();
 }
 
 // Funciones para drag and drop
@@ -2180,25 +2039,6 @@ function nextStep() {
     }
     
     if (currentStep === 2) {
-        const senderEmail = document.getElementById('sender-email').value;
-        const subject = document.getElementById('email-subject').value;
-        const message = document.getElementById('email-message').value;
-        
-        if (!senderEmail || !isValidEmail(senderEmail)) {
-            toastr.error('Ingresa un correo remitente válido');
-            return;
-        }
-        
-        if (!subject.trim()) {
-            toastr.error('Ingresa un asunto para el correo');
-            return;
-        }
-        
-        if (!message.trim()) {
-            toastr.error('Escribe un mensaje para el correo');
-            return;
-        }
-        
         if (!emailJSInitialized) {
             Swal.fire({
                 icon: 'warning',
@@ -2311,18 +2151,6 @@ function goBackToSelection() {
     });
 }
 
-// Funciones del editor de mensajes
-function insertAtCursor(elementId, text) {
-    const textarea = document.getElementById(elementId);
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const value = textarea.value;
-    
-    textarea.value = value.substring(0, start) + text + value.substring(end);
-    textarea.selectionStart = textarea.selectionEnd = start + text.length;
-    textarea.focus();
-}
-
 // Funciones de envío
 function updateReadyCount() {
     const selectedCount = selectedRecipients.size;
@@ -2353,31 +2181,18 @@ async function sendTestEmail() {
         return;
     }
     
-    const senderName = document.getElementById('sender-name').value;
-    const senderEmail = document.getElementById('sender-email').value;
-    const subject = document.getElementById('email-subject').value;
-    let message = document.getElementById('email-message').value;
-    
-    // Personalizar mensaje
-    message = message
-        .replace(/{nombre}/g, 'Usuario de Prueba')
-        .replace(/{email}/g, testEmail)
-        .replace(/{fecha}/g, new Date().toLocaleDateString('es-ES'))
-        .replace(/{numero}/g, '001')
-        .replace(/{tu_nombre}/g, senderName)
-        .replace(/{tu_empresa}/g, senderName);
-    
+    // Obtener datos básicos
     const serviceId = localStorage.getItem('mailmaster_emailjs_service_id');
     const templateId = localStorage.getItem('mailmaster_emailjs_template_id');
     
     const templateParams = {
         to_name: 'Usuario de Prueba',
         to_email: testEmail,
-        from_name: senderName,
-        from_email: senderEmail,
-        subject: subject + ' [PRUEBA]',
-        message: message,
-        reply_to: senderEmail
+        from_name: 'MailMaster', // Este viene de la plantilla de EmailJS
+        from_email: 'test@mailmaster.com', // Este viene de la plantilla de EmailJS
+        subject: 'Prueba de conexión EmailJS',
+        message: 'Esta es una prueba de conexión con EmailJS',
+        reply_to: 'test@mailmaster.com'
     };
     
     try {
@@ -2400,6 +2215,8 @@ async function sendTestEmail() {
                         <li><strong>ID:</strong> ${response.messageId || 'N/A'}</li>
                         <li><strong>Hora:</strong> ${new Date().toLocaleTimeString()}</li>
                     </ul>
+                    <br>
+                    <p><strong>NOTA:</strong> El mensaje viene predeterminado desde tu plantilla de EmailJS.</p>
                 </div>
             `,
             width: 500,
@@ -2455,8 +2272,7 @@ async function startSending() {
         html: `
             <div style="text-align: left;">
                 <p><strong>Destinatarios seleccionados:</strong> ${selectedCount}</p>
-                <p><strong>Remitente:</strong> ${document.getElementById('sender-email').value}</p>
-                <p><strong>Asunto:</strong> ${document.getElementById('email-subject').value}</p>
+                <p><strong>NOTA:</strong> El mensaje viene predeterminado desde tu plantilla de EmailJS</p>
                 <br>
                 <p style="color: #ef4444; font-size: 0.9rem;">
                     <i class="fas fa-exclamation-triangle"></i> 
@@ -2513,30 +2329,17 @@ async function sendNextEmail(recipientsToSend) {
     }
     
     const recipient = recipientsToSend[currentIndex];
-    const senderName = document.getElementById('sender-name').value;
-    const senderEmail = document.getElementById('sender-email').value;
-    const subject = document.getElementById('email-subject').value;
-    let message = document.getElementById('email-message').value;
-    
-    message = message
-        .replace(/{nombre}/g, recipient.nombre)
-        .replace(/{email}/g, recipient.email)
-        .replace(/{fecha}/g, new Date().toLocaleDateString('es-ES'))
-        .replace(/{numero}/g, (currentIndex + 1).toString().padStart(3, '0'))
-        .replace(/{tu_nombre}/g, senderName)
-        .replace(/{tu_empresa}/g, senderName);
-    
     const serviceId = localStorage.getItem('mailmaster_emailjs_service_id');
     const templateId = localStorage.getItem('mailmaster_emailjs_template_id');
     
     const templateParams = {
         to_name: recipient.nombre,
         to_email: recipient.email,
-        from_name: senderName,
-        from_email: senderEmail,
-        subject: subject,
-        message: message,
-        reply_to: senderEmail
+        from_name: "Desde MailMaster", // Este viene de la plantilla de EmailJS
+        from_email: "no-reply@mailmaster.com", // Este viene de la plantilla de EmailJS
+        subject: "Correo enviado desde MailMaster",
+        message: `Hola ${recipient.nombre}, este correo fue enviado automáticamente.`,
+        reply_to: "no-reply@mailmaster.com"
     };
     
     try {
@@ -2634,6 +2437,9 @@ function finishSending(total) {
                 <div style="margin-top: 20px; font-size: 0.9rem; color: #64748b;">
                     <i class="fas fa-clock"></i> Tiempo total: ${Math.round((Date.now() - window.sendStartTime) / 1000 / 60)} minutos
                 </div>
+                <div style="margin-top: 15px; padding: 10px; background: #e0f2fe; border-radius: 8px;">
+                    <p><strong>Recordatorio:</strong> El mensaje viene predeterminado desde tu plantilla de EmailJS</p>
+                </div>
             </div>
         `,
         confirmButtonColor: '#667eea',
@@ -2716,35 +2522,6 @@ function hideLoading() {
     Swal.close();
 }
 
-function loadSavedData() {
-    const savedSenderEmail = localStorage.getItem('mailmaster_sender_email');
-    const savedSenderName = localStorage.getItem('mailmaster_sender_name');
-    const savedSubject = localStorage.getItem('mailmaster_subject');
-    const savedMessage = localStorage.getItem('mailmaster_message');
-    
-    if (savedSenderEmail) document.getElementById('sender-email').value = savedSenderEmail;
-    if (savedSenderName) document.getElementById('sender-name').value = savedSenderName;
-    if (savedSubject) document.getElementById('email-subject').value = savedSubject;
-    if (savedMessage) document.getElementById('email-message').value = savedMessage;
-}
-
-// Guardar datos automáticamente
-document.getElementById('sender-email').addEventListener('input', function() {
-    localStorage.setItem('mailmaster_sender_email', this.value);
-});
-
-document.getElementById('sender-name').addEventListener('input', function() {
-    localStorage.setItem('mailmaster_sender_name', this.value);
-});
-
-document.getElementById('email-subject').addEventListener('input', function() {
-    localStorage.setItem('mailmaster_subject', this.value);
-});
-
-document.getElementById('email-message').addEventListener('input', function() {
-    localStorage.setItem('mailmaster_message', this.value);
-});
-
 // Instrucciones iniciales
 window.addEventListener('load', function() {
     if (!localStorage.getItem('mailmaster_welcome_shown')) {
@@ -2758,18 +2535,24 @@ window.addEventListener('load', function() {
                             <li><strong>Selección individual:</strong> Elige exactamente a quiénes enviar correos</li>
                             <li><strong>Envío real:</strong> Usa EmailJS para enviar correos reales</li>
                             <li><strong>Configuración simple:</strong> Solo necesitas una cuenta gratuita de EmailJS</li>
-                            <li><strong>Personalización completa:</strong> Usa etiquetas para personalizar cada correo</li>
+                            <li><strong>Mensaje predeterminado:</strong> El mensaje ya está en tu plantilla de EmailJS</li>
                             <li><strong>Control total:</strong> Selecciona, filtra y organiza tus destinatarios</li>
                             <li><strong>Seguro:</strong> Sin almacenar datos en servidores externos</li>
                         </ol>
                         <br>
                         <p style="color: #667eea;">
                             <i class="fas fa-lightbulb"></i> 
+                            <strong>IMPORTANTE:</strong> El mensaje ya está predeterminado en tu plantilla de EmailJS. Solo configura las credenciales en el Paso 2.
+                        </p>
+                        <br>
+                        <p style="color: #10b981;">
+                            <i class="fas fa-check-circle"></i> 
                             <strong>PRIMEROS PASOS:</strong> 
                             <ol style="margin-left: 20px;">
                                 <li>Carga tu archivo Excel con correos</li>
                                 <li>Selecciona individualmente a quiénes enviar (usa los checkboxes)</li>
                                 <li>Configura EmailJS en el Paso 2</li>
+                                <li>¡Envia! (el mensaje ya está en tu plantilla de EmailJS)</li>
                             </ol>
                         </p>
                     </div>
@@ -2787,4 +2570,3 @@ window.addEventListener('load', function() {
     </script>
 </body>
 </html>
-
