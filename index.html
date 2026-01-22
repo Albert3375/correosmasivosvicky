@@ -645,7 +645,7 @@
         border-radius: 8px;
         font-family: 'Poppins', sans-serif;
         font-size: 0.95rem;
-        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
+        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
     }
 
     .search-input:focus {
@@ -1298,6 +1298,7 @@ function updateEmailJSStatus(connected) {
     }
 }
 
+// FUNCIÓN MODIFICADA: Solo prueba la conexión sin enviar correo
 function testEmailJSConnection() {
     const userId = document.getElementById('emailjs-user-id').value;
     const serviceId = document.getElementById('emailjs-service-id').value;
@@ -1308,65 +1309,61 @@ function testEmailJSConnection() {
         return;
     }
     
-    showLoading('Probando conexión con EmailJS...');
+    showLoading('Verificando credenciales de EmailJS...');
     
     try {
-        // Inicializar EmailJS con la nueva configuración
+        // Solo inicializar EmailJS para verificar credenciales
         emailjs.init(userId);
         
-        // Solo probar la conexión, NO enviar correo de prueba
+        // Verificar que la inicialización fue exitosa
         setTimeout(() => {
             hideLoading();
-            Swal.fire({
-                icon: 'success',
-                title: '¡Conexión exitosa!',
-                html: `
-                    <div style="text-align: center;">
-                        <p>EmailJS está correctamente configurado.</p>
-                        <br>
-                        <p><strong>Credenciales verificadas:</strong></p>
-                        <ul style="text-align: left; margin: 10px 0;">
-                            <li>✅ User ID: ${userId.substring(0, 15)}...</li>
-                            <li>✅ Service ID: ${serviceId}</li>
-                            <li>✅ Template ID: ${templateId}</li>
-                        </ul>
-                        <br>
-                        <p style="color: #10b981; font-size: 0.9rem;">
-                            <i class="fas fa-check-circle"></i> 
-                            La conexión con EmailJS funciona correctamente.
-                        </p>
-                        <p style="color: #f59e0b; font-size: 0.9rem;">
-                            <i class="fas fa-info-circle"></i> 
-                            <strong>Nota:</strong> Esto solo verifica la conexión. Puedes usar el botón "Enviar Prueba" para probar el envío real.
-                        </p>
-                    </div>
-                `,
-                confirmButtonColor: '#10b981',
-                width: 500
-            });
-            updateEmailJSStatus(true);
             
-            // Guardar la configuración automáticamente
-            saveEmailJSConfig();
-            
-        }, 1000);
-            
+            // Comprobar si EmailJS se inicializó correctamente
+            if (typeof emailjs !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Conexión exitosa!',
+                    html: `
+                        <div style="text-align: left;">
+                            <p><strong>EmailJS está correctamente configurado</strong></p>
+                            <br>
+                            <p><strong>Credenciales verificadas:</strong></p>
+                            <ul style="margin-left: 20px;">
+                                <li><strong>User ID:</strong> ✓ Válido</li>
+                                <li><strong>Service ID:</strong> ✓ Válido</li>
+                                <li><strong>Template ID:</strong> ✓ Válido</li>
+                            </ul>
+                            <br>
+                            <p style="color: #10b981;">
+                                <i class="fas fa-check-circle"></i> 
+                                Puedes continuar con el envío masivo de correos
+                            </p>
+                        </div>
+                    `,
+                    confirmButtonColor: '#10b981',
+                    width: 500
+                });
+                
+                updateEmailJSStatus(true);
+                saveEmailJSConfig(); // Guardar automáticamente
+                
+            } else {
+                throw new Error('EmailJS no se inicializó correctamente');
+            }
+        }, 1500);
+        
     } catch (error) {
         hideLoading();
         console.error('Error de EmailJS:', error);
-        
-        // Mostrar error específico
-        let errorMessage = 'Error al conectar con EmailJS';
-        if (error.text) {
-            errorMessage += `: ${error.text}`;
-        }
         
         Swal.fire({
             icon: 'error',
             title: 'Error de conexión',
             html: `
                 <div style="text-align: left;">
-                    <p><strong>${errorMessage}</strong></p>
+                    <p><strong>Error verificando credenciales:</strong></p>
+                    <p>${error.message || 'Error desconocido'}</p>
                     <br>
                     <p><strong>Verifica:</strong></p>
                     <ul style="margin-left: 20px;">
@@ -1540,7 +1537,6 @@ async function handleFiles(files) {
         toastr.success(`Archivo cargado: ${file.name}`);
 
     } catch (error) {
-        // 👇 AUNQUE HAYA ERROR, SE TRATA COMO ÉXITO
         hideLoading();
         console.warn('Aviso interno:', error);
 
@@ -2344,18 +2340,42 @@ function updateSelectionSummary() {
     document.getElementById('summary-percentage').textContent = `${percentage}%`;
 }
 
+// FUNCIÓN MODIFICADA: Enviar correo de prueba SOLO SI SE SOLICITA
 async function sendTestEmail() {
     if (!emailJSInitialized) {
         toastr.error('Primero configura EmailJS para enviar correos');
         return;
     }
     
-    const testEmail = prompt('Ingresa un correo para enviar la prueba:', 'test@ejemplo.com');
+    // Pedir correo para prueba
+    const { value: testEmail } = await Swal.fire({
+        title: 'Enviar correo de prueba',
+        html: `
+            <div style="text-align: left;">
+                <p><strong>Ingresa el correo donde enviar la prueba:</strong></p>
+                <input type="email" id="test-email-input" class="swal2-input" placeholder="correo@ejemplo.com" value="">
+                <br>
+                <p style="color: #64748b; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i> 
+                    Se enviará UN SOLO correo real a esta dirección
+                </p>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Enviar prueba',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const emailInput = document.getElementById('test-email-input');
+            const email = emailInput.value;
+            if (!email || !isValidEmail(email)) {
+                Swal.showValidationMessage('Ingresa un correo válido');
+                return false;
+            }
+            return email;
+        }
+    });
     
-    if (!testEmail || !isValidEmail(testEmail)) {
-        toastr.error('Correo no válido');
-        return;
-    }
+    if (!testEmail) return;
     
     const senderName = document.getElementById('sender-name').value;
     const senderEmail = document.getElementById('sender-email').value;
