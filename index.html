@@ -491,11 +491,6 @@
         color: var(--danger);
     }
 
-    .status.duplicate {
-        background: rgba(156, 163, 175, 0.1);
-        color: #6b7280;
-    }
-
     /* Progress Bar */
     .progress-container {
         background: var(--white);
@@ -650,7 +645,7 @@
         border-radius: 8px;
         font-family: 'Poppins', sans-serif;
         font-size: 0.95rem;
-        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
+        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
     }
 
     .search-input:focus {
@@ -779,46 +774,6 @@
         display: none !important;
     }
 
-    /* Nuevas clases para correos múltiples */
-    .email-badge {
-        display: inline-block;
-        background: var(--primary-light);
-        color: var(--primary);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        margin: 2px;
-    }
-    
-    .split-info {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
-        padding: 10px;
-        margin: 10px 0;
-        font-size: 0.9rem;
-    }
-    
-    .duplicate-badge {
-        display: inline-block;
-        background: #f3f4f6;
-        color: #6b7280;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        margin: 2px;
-        border: 1px solid #d1d5db;
-    }
-    
-    /* Colores para duplicados */
-    tr.duplicate-row {
-        background-color: rgba(243, 244, 246, 0.5);
-    }
-    
-    tr.duplicate-row:hover {
-        background-color: rgba(243, 244, 246, 0.8);
-    }
-
     /* Mobile Responsive */
     @media (max-width: 1024px) {
         .main-content {
@@ -870,6 +825,26 @@
             gap: 10px;
         }
     }
+
+    /* Nuevas clases para correos múltiples */
+    .email-badge {
+        display: inline-block;
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin: 2px;
+    }
+    
+    .split-info {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 0.9rem;
+    }
 </style>
 <body>
     <div class="container">
@@ -896,7 +871,7 @@
                     <div class="upload-area" id="drop-area">
                         <i class="fas fa-file-excel upload-icon"></i>
                         <h3>Arrastra tu archivo Excel aquí</h3>
-                        <p>Sube un archivo Excel (.xlsx, .xls) con correos electrónicos. <strong>Ahora acepta TODOS los correos, incluyendo duplicados.</strong></p>
+                        <p>Sube un archivo Excel (.xlsx, .xls) con correos electrónicos. El sistema detectará automáticamente correos aunque estén en una misma celda separados por comas, puntos y comas, saltos de línea, etc.</p>
                         <div style="margin-top: 20px;">
                             <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" hidden>
                             <button class="btn btn-primary" onclick="document.getElementById('excel-file').click()">
@@ -905,7 +880,7 @@
                         </div>
                         <div class="help-text">
                             <i class="fas fa-info-circle"></i>
-                            <strong>IMPORTANTE:</strong> Ahora se procesan TODOS los correos, incluyendo duplicados. Los correos duplicados se marcarán automáticamente.
+                            <strong>NUEVO:</strong> Detecta múltiples correos en una sola celda (separados por comas, puntos y comas, espacios, saltos de línea).
                         </div>
                     </div>
 
@@ -924,8 +899,8 @@
                             <div class="stat-value unselected" id="unselected-count">0</div>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">Duplicados</span>
-                            <div class="stat-value" id="duplicate-count">0</div>
+                            <span class="stat-label">Porcentaje</span>
+                            <div class="stat-value" id="selection-percentage">0%</div>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Celdas divididas</span>
@@ -950,9 +925,6 @@
                             <button class="filter-btn" onclick="filterRecipientsBySelection('unselected')">
                                 <i class="fas fa-times-circle"></i> Solo no seleccionados
                             </button>
-                            <button class="filter-btn" onclick="filterRecipientsBySelection('duplicates')">
-                                <i class="fas fa-copy"></i> Solo duplicados
-                            </button>
                         </div>
                         
                         <!-- Selección rápida -->
@@ -971,9 +943,6 @@
                             </button>
                             <button class="btn btn-sm btn-danger" onclick="removeSelected()">
                                 <i class="fas fa-trash"></i> Eliminar Seleccionados
-                            </button>
-                            <button class="btn btn-sm btn-secondary" onclick="removeDuplicates()">
-                                <i class="fas fa-filter"></i> Quitar Duplicados
                             </button>
                         </div>
                     </div>
@@ -997,9 +966,6 @@
                                 <i class="fas fa-users"></i> Destinatarios: <span id="recipient-count">0</span>
                                 <small style="color: var(--primary); margin-left: 10px;">
                                     (<span id="recipient-selected-count">0</span> seleccionados)
-                                </small>
-                                <small style="color: var(--gray); margin-left: 10px;">
-                                    (<span id="recipient-duplicate-count">0</span> duplicados)
                                 </small>
                             </h3>
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -1041,7 +1007,7 @@
                         
                         <div class="help-text">
                             <i class="fas fa-mouse-pointer"></i>
-                            <strong>INSTRUCCIONES DE SELECCIÓN:</strong> Marca/desmarca individualmente los destinatarios. Los correos duplicados se marcan automáticamente.
+                            <strong>INSTRUCCIONES DE SELECCIÓN:</strong> Marca/desmarca individualmente los destinatarios. Solo se enviará correo a los marcados con ✓.
                         </div>
                     </div>
                 </div>
@@ -1190,8 +1156,8 @@ Saludos cordiales,
                                 <div style="color: var(--gray);">No seleccionados</div>
                             </div>
                             <div style="text-align: center;">
-                                <div style="font-size: 2rem; font-weight: bold; color: #6b7280;" id="summary-duplicates">0</div>
-                                <div style="color: var(--gray);">Duplicados</div>
+                                <div style="font-size: 2rem; font-weight: bold; color: var(--success);" id="summary-percentage">0%</div>
+                                <div style="color: var(--gray);">Porcentaje seleccionado</div>
                             </div>
                         </div>
                         <div style="margin-top: 15px; text-align: center;">
@@ -1261,7 +1227,6 @@ Saludos cordiales,
                             <p style="color: var(--gray); margin-bottom: 25px;">
                                 Tienes <span id="ready-count" style="font-weight: bold; color: var(--primary);">0</span> destinatarios <strong>seleccionados</strong> listos para recibir el correo.
                                 <br><small style="color: var(--gray);">(Solo se enviará a los destinatarios marcados con ✓)</small>
-                                <br><small style="color: #6b7280;">(<span id="ready-duplicates">0</span> de estos son correos duplicados)</small>
                             </p>
                             
                             <button class="btn btn-primary" onclick="startSending()" style="padding: 15px 40px; font-size: 1.1rem;" id="start-sending-btn">
@@ -1317,9 +1282,8 @@ let sentCount = 0;
 let failedCount = 0;
 let currentIndex = 0;
 let emailJSInitialized = false;
-let currentFilter = 'all'; // 'all', 'selected', 'unselected', 'duplicates'
+let currentFilter = 'all'; // 'all', 'selected', 'unselected'
 let splitCellsCount = 0; // Contador de celdas divididas
-let duplicateEmails = new Map(); // Mapa para rastrear duplicados: email -> [ids]
 
 // Inicializar EmailJS
 function initEmailJS() {
@@ -1733,9 +1697,9 @@ function processWorkbook(workbook, resolve, reject) {
         }
         
         const foundEmails = [];
+        const seenEmails = new Set();
         let emailCount = 0;
         splitCellsCount = 0;
-        duplicateEmails.clear(); // Limpiar mapa de duplicados
         
         for (let row = 0; row < jsonData.length; row++) {
             const rowData = jsonData[row];
@@ -1759,7 +1723,7 @@ function processWorkbook(workbook, resolve, reject) {
                 if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
                     cellValue = String(cellValue).trim();
                     
-                    // Verificar si la celda contiene múltiples correos
+                    // NUEVO: Verificar si la celda contiene múltiples correos
                     const emailsInCell = extractEmailsFromText(cellValue);
                     
                     if (emailsInCell.length > 0) {
@@ -1771,39 +1735,30 @@ function processWorkbook(workbook, resolve, reject) {
                         for (const email of emailsInCell) {
                             emailCount++;
                             
-                            // Obtener nombre para este email
-                            const nombre = extractNameForEmail(email, cellValue, cells);
-                            
-                            // Determinar el origen del correo
-                            let origen = `Fila ${row + 1}, Col ${col + 1}`;
-                            if (emailsInCell.length > 1) {
-                                origen += ` (${emailsInCell.indexOf(email) + 1}/${emailsInCell.length})`;
+                            if (!seenEmails.has(email)) {
+                                seenEmails.add(email);
+                                
+                                // Obtener nombre para este email
+                                const nombre = extractNameForEmail(email, cellValue, cells);
+                                
+                                // Determinar el origen del correo
+                                let origen = `Fila ${row + 1}, Col ${col + 1}`;
+                                if (emailsInCell.length > 1) {
+                                    origen += ` (${emailsInCell.indexOf(email) + 1}/${emailsInCell.length})`;
+                                }
+                                
+                                foundEmails.push({
+                                    id: Date.now() + Math.random() + email,
+                                    email: email.toLowerCase(),
+                                    nombre: nombre,
+                                    row: row + 1,
+                                    col: col + 1,
+                                    selected: true, // Por defecto todos seleccionados
+                                    status: 'pending',
+                                    origen: origen,
+                                    esDividido: emailsInCell.length > 1
+                                });
                             }
-                            
-                            // Crear ID único para cada correo (incluye timestamp y email)
-                            const uniqueId = `${Date.now()}_${row}_${col}_${email}_${Math.random()}`;
-                            
-                            const recipient = {
-                                id: uniqueId,
-                                email: email.toLowerCase(),
-                                nombre: nombre,
-                                row: row + 1,
-                                col: col + 1,
-                                selected: true, // Por defecto todos seleccionados
-                                status: 'pending',
-                                origen: origen,
-                                esDividido: emailsInCell.length > 1,
-                                esDuplicado: false, // Se marcará después
-                                duplicadoDe: null // Si es duplicado, guardar de quién
-                            };
-                            
-                            foundEmails.push(recipient);
-                            
-                            // Registrar en el mapa de duplicados
-                            if (!duplicateEmails.has(email)) {
-                                duplicateEmails.set(email, []);
-                            }
-                            duplicateEmails.get(email).push(recipient.id);
                         }
                     } else {
                         // Método original para correos individuales
@@ -1811,43 +1766,35 @@ function processWorkbook(workbook, resolve, reject) {
                             emailCount++;
                             const email = cellValue.toLowerCase();
                             
-                            const nombre = extractNameForEmail(email, cellValue, cells);
-                            
-                            // Crear ID único
-                            const uniqueId = `${Date.now()}_${row}_${col}_${email}_${Math.random()}`;
-                            
-                            const recipient = {
-                                id: uniqueId,
-                                email: email,
-                                nombre: nombre,
-                                row: row + 1,
-                                col: col + 1,
-                                selected: true,
-                                status: 'pending',
-                                origen: `Fila ${row + 1}, Col ${col + 1}`,
-                                esDividido: false,
-                                esDuplicado: false,
-                                duplicadoDe: null
-                            };
-                            
-                            foundEmails.push(recipient);
-                            
-                            // Registrar en el mapa de duplicados
-                            if (!duplicateEmails.has(email)) {
-                                duplicateEmails.set(email, []);
+                            if (!seenEmails.has(email)) {
+                                seenEmails.add(email);
+                                
+                                let nombre = extractNameForEmail(email, cellValue, cells);
+                                
+                                foundEmails.push({
+                                    id: Date.now() + Math.random() + email,
+                                    email: email,
+                                    nombre: nombre,
+                                    row: row + 1,
+                                    col: col + 1,
+                                    selected: true,
+                                    status: 'pending',
+                                    origen: `Fila ${row + 1}, Col ${col + 1}`,
+                                    esDividido: false
+                                });
                             }
-                            duplicateEmails.get(email).push(recipient.id);
                         }
                     }
                 }
             }
         }
         
-        console.log(`Correos encontrados: ${emailCount}, Celdas divididas: ${splitCellsCount}`);
+        console.log(`Correos encontrados: ${emailCount}, Únicos: ${foundEmails.length}, Celdas divididas: ${splitCellsCount}`);
         
         if (foundEmails.length === 0) {
             // Método alternativo si no se encontraron correos
             const alternativeEmails = [];
+            const alternativeSeen = new Set();
             
             for (let row = 0; row < jsonData.length; row++) {
                 const rowData = jsonData[row];
@@ -1877,35 +1824,27 @@ function processWorkbook(workbook, resolve, reject) {
                             }
                             
                             for (const email of emailsInCell) {
-                                const nombre = extractNameForEmail(email, cellValue, cells);
-                                let origen = `Fila ${row + 1}, Col ${col + 1}`;
-                                if (emailsInCell.length > 1) {
-                                    origen += ` (${emailsInCell.indexOf(email) + 1}/${emailsInCell.length})`;
+                                if (!alternativeSeen.has(email)) {
+                                    alternativeSeen.add(email);
+                                    
+                                    const nombre = extractNameForEmail(email, cellValue, cells);
+                                    let origen = `Fila ${row + 1}, Col ${col + 1}`;
+                                    if (emailsInCell.length > 1) {
+                                        origen += ` (${emailsInCell.indexOf(email) + 1}/${emailsInCell.length})`;
+                                    }
+                                    
+                                    alternativeEmails.push({
+                                        id: Date.now() + Math.random() + email,
+                                        email: email.toLowerCase(),
+                                        nombre: nombre,
+                                        row: row + 1,
+                                        col: col + 1,
+                                        selected: true,
+                                        status: 'pending',
+                                        origen: origen,
+                                        esDividido: emailsInCell.length > 1
+                                    });
                                 }
-                                
-                                const uniqueId = `${Date.now()}_${row}_${col}_${email}_${Math.random()}`;
-                                
-                                const recipient = {
-                                    id: uniqueId,
-                                    email: email.toLowerCase(),
-                                    nombre: nombre,
-                                    row: row + 1,
-                                    col: col + 1,
-                                    selected: true,
-                                    status: 'pending',
-                                    origen: origen,
-                                    esDividido: emailsInCell.length > 1,
-                                    esDuplicado: false,
-                                    duplicadoDe: null
-                                };
-                                
-                                alternativeEmails.push(recipient);
-                                
-                                // Registrar en el mapa de duplicados
-                                if (!duplicateEmails.has(email)) {
-                                    duplicateEmails.set(email, []);
-                                }
-                                duplicateEmails.get(email).push(recipient.id);
                             }
                         } else {
                             // Verificar patrón simple de correo
@@ -1919,31 +1858,23 @@ function processWorkbook(workbook, resolve, reject) {
                                 
                                 const email = cellValue.toLowerCase();
                                 
-                                const nombre = extractNameForEmail(email, cellValue, cells);
-                                
-                                const uniqueId = `${Date.now()}_${row}_${col}_${email}_${Math.random()}`;
-                                
-                                const recipient = {
-                                    id: uniqueId,
-                                    email: email,
-                                    nombre: nombre,
-                                    row: row + 1,
-                                    col: col + 1,
-                                    selected: true,
-                                    status: 'pending',
-                                    origen: `Fila ${row + 1}, Col ${col + 1}`,
-                                    esDividido: false,
-                                    esDuplicado: false,
-                                    duplicadoDe: null
-                                };
-                                
-                                alternativeEmails.push(recipient);
-                                
-                                // Registrar en el mapa de duplicados
-                                if (!duplicateEmails.has(email)) {
-                                    duplicateEmails.set(email, []);
+                                if (!alternativeSeen.has(email)) {
+                                    alternativeSeen.add(email);
+                                    
+                                    const nombre = extractNameForEmail(email, cellValue, cells);
+                                    
+                                    alternativeEmails.push({
+                                        id: Date.now() + Math.random() + email,
+                                        email: email,
+                                        nombre: nombre,
+                                        row: row + 1,
+                                        col: col + 1,
+                                        selected: true,
+                                        status: 'pending',
+                                        origen: `Fila ${row + 1}, Col ${col + 1}`,
+                                        esDividido: false
+                                    });
                                 }
-                                duplicateEmails.get(email).push(recipient.id);
                             }
                         }
                     }
@@ -1963,9 +1894,6 @@ function processWorkbook(workbook, resolve, reject) {
             recipients = foundEmails;
         }
         
-        // Marcar duplicados después de procesar todos los correos
-        markDuplicates();
-        
         // Seleccionar todos por defecto
         recipients.forEach(recipient => {
             if (recipient.selected) {
@@ -1981,7 +1909,7 @@ function processWorkbook(workbook, resolve, reject) {
         if (splitCellsCount > 0) {
             document.getElementById('split-info').classList.remove('hidden');
             document.getElementById('split-details').textContent = 
-                `${splitCellsCount} celdas fueron divididas en correos individuales.`;
+                `${splitCellsCount} celdas fueron divididas en ${recipients.length} correos individuales.`;
             document.getElementById('split-count').textContent = splitCellsCount;
         }
         
@@ -1991,126 +1919,6 @@ function processWorkbook(workbook, resolve, reject) {
         console.error('Error en processWorkbook:', error);
         reject(new Error('Error procesando los datos del Excel: ' + error.message));
     }
-}
-
-// Función para marcar correos duplicados
-function markDuplicates() {
-    let duplicateCount = 0;
-    
-    // Recorrer el mapa de duplicados
-    for (const [email, ids] of duplicateEmails) {
-        if (ids.length > 1) {
-            // Este email aparece más de una vez, es un duplicado
-            // El primer ID se considera el "original", los demás son duplicados
-            const originalId = ids[0];
-            
-            for (let i = 1; i < ids.length; i++) {
-                const duplicateId = ids[i];
-                const recipient = recipients.find(r => r.id === duplicateId);
-                
-                if (recipient) {
-                    recipient.esDuplicado = true;
-                    recipient.duplicadoDe = originalId;
-                    duplicateCount++;
-                }
-            }
-        }
-    }
-    
-    // Actualizar estadísticas de duplicados
-    updateDuplicateStats();
-    
-    console.log(`Duplicados marcados: ${duplicateCount}`);
-    return duplicateCount;
-}
-
-// Función para actualizar estadísticas de duplicados
-function updateDuplicateStats() {
-    const duplicateCount = recipients.filter(r => r.esDuplicado).length;
-    const totalCount = recipients.length;
-    const duplicatePercentage = totalCount > 0 ? Math.round((duplicateCount / totalCount) * 100) : 0;
-    
-    document.getElementById('duplicate-count').textContent = duplicateCount;
-    document.getElementById('recipient-duplicate-count').textContent = duplicateCount;
-    document.getElementById('summary-duplicates').textContent = duplicateCount;
-    
-    // Actualizar contador en el paso 3
-    const selectedDuplicates = recipients.filter(r => r.esDuplicado && selectedRecipients.has(r.id)).length;
-    document.getElementById('ready-duplicates').textContent = selectedDuplicates;
-    
-    return duplicateCount;
-}
-
-// Función para quitar duplicados manualmente
-function removeDuplicates() {
-    const duplicateCount = recipients.filter(r => r.esDuplicado).length;
-    
-    if (duplicateCount === 0) {
-        toastr.warning('No hay correos duplicados para eliminar');
-        return;
-    }
-    
-    Swal.fire({
-        title: '¿Quitar duplicados?',
-        html: `
-            <div style="text-align: left;">
-                <p>Se eliminarán <strong>${duplicateCount}</strong> correos duplicados.</p>
-                <p><strong>¿Qué deseas hacer con los duplicados?</strong></p>
-            </div>
-        `,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: 'Eliminar duplicados',
-        cancelButtonText: 'Cancelar',
-        showDenyButton: true,
-        denyButtonText: 'Seleccionar solo únicos',
-        denyButtonColor: '#10b981',
-        width: 500
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Eliminar duplicados
-            recipients = recipients.filter(recipient => !recipient.esDuplicado);
-            selectedRecipients.clear();
-            
-            // Volver a marcar duplicados
-            duplicateEmails.clear();
-            recipients.forEach(recipient => {
-                if (!duplicateEmails.has(recipient.email)) {
-                    duplicateEmails.set(recipient.email, []);
-                }
-                duplicateEmails.get(recipient.email).push(recipient.id);
-            });
-            markDuplicates();
-            
-            // Seleccionar todos los que quedan
-            recipients.forEach(recipient => {
-                selectedRecipients.add(recipient.id);
-            });
-            
-            displayRecipients();
-            updateSelectionSummary();
-            updateReadyCount();
-            
-            toastr.success(`${duplicateCount} duplicados eliminados`);
-            
-        } else if (result.isDenied) {
-            // Seleccionar solo correos únicos (no duplicados)
-            selectedRecipients.clear();
-            recipients.forEach(recipient => {
-                if (!recipient.esDuplicado) {
-                    selectedRecipients.add(recipient.id);
-                }
-            });
-            
-            displayRecipients();
-            updateSelectionSummary();
-            updateReadyCount();
-            
-            toastr.success('Solo correos únicos seleccionados');
-        }
-    });
 }
 
 function displayRecipients() {
@@ -2129,7 +1937,6 @@ function displayRecipients() {
     recipientSelectedCount.textContent = selectedRecipients.size;
     
     updateSelectionStats();
-    updateDuplicateStats();
     
     const filteredRecipients = getFilteredRecipients();
     
@@ -2147,19 +1954,13 @@ function displayRecipients() {
     
     updateSelectAllCheckbox();
     
-    // Mostrar información sobre celdas divididas y duplicados
+    // Mostrar información sobre celdas divididas
     let splitInfo = '';
     if (splitCellsCount > 0) {
         splitInfo = ` (${splitCellsCount} celdas divididas)`;
     }
     
-    const duplicateCount = recipients.filter(r => r.esDuplicado).length;
-    let duplicateInfo = '';
-    if (duplicateCount > 0) {
-        duplicateInfo = `, ${duplicateCount} duplicados`;
-    }
-    
-    toastr.success(`Encontrados ${recipients.length} correos${splitInfo}${duplicateInfo} (${selectedRecipients.size} seleccionados)`);
+    toastr.success(`Encontrados ${recipients.length} correos únicos${splitInfo} (${selectedRecipients.size} seleccionados)`);
 }
 
 function getFilteredRecipients() {
@@ -2181,8 +1982,6 @@ function getFilteredRecipients() {
         filtered = filtered.filter(recipient => selectedRecipients.has(recipient.id));
     } else if (currentFilter === 'unselected') {
         filtered = filtered.filter(recipient => !selectedRecipients.has(recipient.id));
-    } else if (currentFilter === 'duplicates') {
-        filtered = filtered.filter(recipient => recipient.esDuplicado);
     }
     
     return filtered;
@@ -2201,11 +2000,6 @@ function createRecipientRow(recipient, index) {
         row.style.backgroundColor = 'rgba(255, 243, 205, 0.3)';
     }
     
-    // Marcar filas que son duplicados
-    if (recipient.esDuplicado) {
-        row.classList.add('duplicate-row');
-    }
-    
     row.innerHTML = `
         <td>
             <div class="checkbox-group">
@@ -2217,13 +2011,12 @@ function createRecipientRow(recipient, index) {
         <td>
             ${recipient.email}
             ${recipient.esDividido ? '<span class="email-badge"><i class="fas fa-code-branch"></i> Dividido</span>' : ''}
-            ${recipient.esDuplicado ? '<span class="duplicate-badge"><i class="fas fa-copy"></i> Duplicado</span>' : ''}
         </td>
         <td>${recipient.nombre}</td>
         <td>${recipient.origen}</td>
         <td>
-            <span class="status ${recipient.esDuplicado ? 'duplicate' : (isSelected ? 'selected' : 'pending')}">
-                ${recipient.esDuplicado ? 'Duplicado' : (isSelected ? 'Seleccionado' : 'No seleccionado')}
+            <span class="status ${isSelected ? 'selected' : 'pending'}">
+                ${isSelected ? 'Seleccionado' : 'No seleccionado'}
             </span>
         </td>
         <td>
@@ -2245,9 +2038,8 @@ function toggleRecipientSelection(id, checkbox) {
             row.classList.add('selected');
             const statusCell = row.querySelector('.status');
             if (statusCell) {
-                const recipient = recipients.find(r => r.id === id);
-                statusCell.textContent = recipient?.esDuplicado ? 'Duplicado ✓' : 'Seleccionado';
-                statusCell.className = recipient?.esDuplicado ? 'status duplicate' : 'status selected';
+                statusCell.textContent = 'Seleccionado';
+                statusCell.className = 'status selected';
             }
             // Actualizar botón
             const actionBtn = row.querySelector('td:last-child button');
@@ -2262,9 +2054,8 @@ function toggleRecipientSelection(id, checkbox) {
             row.classList.remove('selected');
             const statusCell = row.querySelector('.status');
             if (statusCell) {
-                const recipient = recipients.find(r => r.id === id);
-                statusCell.textContent = recipient?.esDuplicado ? 'Duplicado' : 'No seleccionado';
-                statusCell.className = recipient?.esDuplicado ? 'status duplicate' : 'status pending';
+                statusCell.textContent = 'No seleccionado';
+                statusCell.className = 'status pending';
             }
             // Actualizar botón
             const actionBtn = row.querySelector('td:last-child button');
@@ -2277,7 +2068,6 @@ function toggleRecipientSelection(id, checkbox) {
     
     updateSelectionStats();
     updateSelectAllCheckbox();
-    updateDuplicateStats();
 }
 
 function toggleSingleRecipient(id) {
@@ -2306,8 +2096,6 @@ function filterRecipientsBySelection(filter) {
         document.querySelector('.filter-btn:nth-child(2)').classList.add('active');
     } else if (filter === 'unselected') {
         document.querySelector('.filter-btn:nth-child(3)').classList.add('active');
-    } else if (filter === 'duplicates') {
-        document.querySelector('.filter-btn:nth-child(4)').classList.add('active');
     }
     
     displayRecipients();
@@ -2443,16 +2231,6 @@ function removeSelected() {
             recipients = recipients.filter(recipient => !selectedRecipients.has(recipient.id));
             selectedRecipients.clear();
             
-            // Actualizar mapa de duplicados
-            duplicateEmails.clear();
-            recipients.forEach(recipient => {
-                if (!duplicateEmails.has(recipient.email)) {
-                    duplicateEmails.set(recipient.email, []);
-                }
-                duplicateEmails.get(recipient.email).push(recipient.id);
-            });
-            markDuplicates();
-            
             displayRecipients();
             updateSelectionSummary();
             updateReadyCount();
@@ -2479,7 +2257,6 @@ function clearRecipients() {
             recipients = [];
             selectedRecipients.clear();
             splitCellsCount = 0;
-            duplicateEmails.clear();
             
             document.getElementById('recipients-body').innerHTML = '';
             document.getElementById('recipients-preview').classList.add('hidden');
@@ -2491,7 +2268,6 @@ function clearRecipients() {
             
             updateSelectionSummary();
             updateReadyCount();
-            updateDuplicateStats();
             toastr.info('Lista limpiada');
         }
     });
@@ -2504,18 +2280,15 @@ function downloadTemplate() {
         ['María García', 'maria.garcia@ejemplo.com', 'Innovatech', '555-5678'],
         ['Carlos López', 'carlos.lopez@ejemplo.com', 'Digital Solutions', '555-9012'],
         ['Ana Rodríguez', 'ana.rodriguez@ejemplo.com, pedro@empresa.com', 'WebMasters', '555-3456'],
-        ['Pedro Sánchez; luis@empresa.com', 'pedro.sanchez@ejemplo.com', 'NetSystems', '555-7890'],
-        ['Luis Gómez', 'luis.gomez@ejemplo.com', 'TechCorp', '555-2468'],
-        ['Carlos López', 'carlos.lopez@ejemplo.com', 'Digital Solutions', '555-9012'],
-        ['Repetido', 'carlos.lopez@ejemplo.com', 'Digital Solutions', '555-9012']
+        ['Pedro Sánchez; luis@empresa.com', 'pedro.sanchez@ejemplo.com', 'NetSystems', '555-7890']
     ];
     
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Destinatarios");
     
-    XLSX.writeFile(wb, "plantilla_con_duplicados.xlsx");
-    toastr.success('Plantilla con ejemplos de duplicados descargada');
+    XLSX.writeFile(wb, "plantilla_destinatarios_multicorreos.xlsx");
+    toastr.success('Plantilla con ejemplos de múltiples correos descargada');
 }
 
 // Funciones de navegación
@@ -2533,7 +2306,6 @@ function nextStep() {
         
         // Actualizar resumen de selección
         updateSelectionSummary();
-        updateDuplicateStats();
     }
     
     if (currentStep === 2) {
@@ -2615,7 +2387,6 @@ function goToNextStep() {
     if (currentStep === 3) {
         updateReadyCount();
         updateSelectionSummary();
-        updateDuplicateStats();
     }
 }
 
@@ -2685,23 +2456,17 @@ function insertAtCursor(elementId, text) {
 function updateReadyCount() {
     const selectedCount = selectedRecipients.size;
     document.getElementById('ready-count').textContent = selectedCount;
-    
-    // Actualizar duplicados seleccionados
-    const selectedDuplicates = recipients.filter(r => r.esDuplicado && selectedRecipients.has(r.id)).length;
-    document.getElementById('ready-duplicates').textContent = selectedDuplicates;
 }
 
 function updateSelectionSummary() {
     const selectedCount = selectedRecipients.size;
     const totalCount = recipients.length;
     const unselectedCount = totalCount - selectedCount;
-    const duplicateCount = recipients.filter(r => r.esDuplicado).length;
     const percentage = totalCount > 0 ? Math.round((selectedCount / totalCount) * 100) : 0;
     
     document.getElementById('summary-selected').textContent = selectedCount;
     document.getElementById('summary-unselected').textContent = unselectedCount;
     document.getElementById('summary-percentage').textContent = `${percentage}%`;
-    document.getElementById('summary-duplicates').textContent = duplicateCount;
 }
 
 async function sendTestEmail() {
@@ -2830,7 +2595,6 @@ async function startSending() {
         html: `
             <div style="text-align:left">
                 <p><strong>Destinatarios seleccionados:</strong> ${selectedCount}</p>
-                <p><strong>Duplicados seleccionados:</strong> <span id="confirm-duplicates">${recipients.filter(r => r.esDuplicado && selectedRecipients.has(r.id)).length}</span></p>
                 <p><strong>Remitente:</strong> ${document.getElementById('sender-email').value}</p>
                 <p><strong>Asunto:</strong> ${document.getElementById('email-subject').value}</p>
                 <hr>
@@ -2866,7 +2630,7 @@ function prepareSending() {
     sentCount = 0;
     failedCount = 0;
 
-    // ✅ Obtener destinatarios seleccionados
+    // ✅ FIX: asegurar comparación correcta de IDs
     const recipientsToSend = recipients.filter(r =>
         selectedRecipients.has(String(r.id))
     );
@@ -2925,7 +2689,7 @@ async function sendNextEmail(recipientsToSend) {
         updateRecipientStatus(recipient.id, 'success');
         
         // Mostrar progreso en consola
-        console.log(`✅ Correo ${currentIndex + 1}/${recipientsToSend.length} enviado a: ${recipient.email} ${recipient.esDuplicado ? '(DUPLICADO)' : ''}`);
+        console.log(`✅ Correo ${currentIndex + 1}/${recipientsToSend.length} enviado a: ${recipient.email}`);
         
     } catch (error) {
         failedCount++;
@@ -2988,12 +2752,6 @@ function finishSending(total) {
         `;
     }
     
-    // Contar duplicados enviados
-    const sentDuplicates = recipients.filter(r => 
-        selectedRecipients.has(r.id) && r.esDuplicado && 
-        recipientsToSend.some(rs => rs.id === r.id)
-    ).length;
-    
     Swal.fire({
         title: '¡Envío REAL completado!',
         html: `
@@ -3015,11 +2773,6 @@ function finishSending(total) {
                         <div style="color: #64748b;">Tasa de éxito</div>
                     </div>
                 </div>
-                ${sentDuplicates > 0 ? `
-                <div style="margin-top: 10px; padding: 10px; background: #f3f4f6; border-radius: 8px;">
-                    <p><i class="fas fa-copy"></i> <strong>Nota:</strong> Se enviaron ${sentDuplicates} correos duplicados</p>
-                </div>
-                ` : ''}
                 ${errorLogHtml}
                 <div style="margin-top: 20px; font-size: 0.9rem; color: #64748b;">
                     <i class="fas fa-clock"></i> Tiempo total: ${Math.round((Date.now() - window.sendStartTime) / 1000 / 60)} minutos
@@ -3144,30 +2897,31 @@ window.addEventListener('load', function() {
                 title: '¡Bienvenido a MailMaster PRO!',
                 html: `
                     <div style="text-align: left; line-height: 1.6;">
-                        <p><strong>NUEVA FUNCIÓN: Procesa TODOS los correos, incluyendo duplicados</strong></p>
-                        <p>Ahora el sistema acepta y procesa:</p>
+                        <p><strong>NUEVA FUNCIÓN: Detección de múltiples correos en una celda</strong></p>
+                        <p>Ahora el sistema puede detectar correos separados por:</p>
                         <ul style="margin-left: 20px; margin-top: 10px;">
-                            <li><strong>Todos los correos duplicados</strong> (sin eliminarlos automáticamente)</li>
-                            <li>Múltiples correos en una misma celda (separados por comas, puntos y comas, etc.)</li>
-                            <li>Correos con diferentes formatos de separación</li>
+                            <li>Comas: correo1@ejemplo.com, correo2@ejemplo.com</li>
+                            <li>Puntos y comas: correo1@ejemplo.com; correo2@ejemplo.com</li>
+                            <li>Saltos de línea</li>
+                            <li>Espacios múltiples</li>
+                            <li>Pipes (|) y dos puntos (:)</li>
                         </ul>
                         <br>
                         <p><strong>Características principales:</strong></p>
                         <ol style="margin-left: 20px; margin-top: 10px;">
-                            <li><strong>Sin eliminación automática:</strong> Todos los correos se procesan</li>
-                            <li><strong>Identificación de duplicados:</strong> Se marcan automáticamente</li>
-                            <li><strong>Control total:</strong> Decide qué hacer con los duplicados</li>
+                            <li><strong>Detección inteligente:</strong> Encuentra correos incluso en celdas combinadas</li>
+                            <li><strong>Selección individual:</strong> Elige exactamente a quiénes enviar correos</li>
                             <li><strong>Envío real:</strong> Usa EmailJS para enviar correos reales</li>
                             <li><strong>Personalización completa:</strong> Usa etiquetas para personalizar cada correo</li>
+                            <li><strong>Control total:</strong> Selecciona, filtra y organiza tus destinatarios</li>
                         </ol>
                         <br>
                         <p style="color: #667eea;">
                             <i class="fas fa-lightbulb"></i> 
                             <strong>PRIMEROS PASOS:</strong> 
                             <ol style="margin-left: 20px;">
-                                <li>Carga tu archivo Excel con correos (incluye todos los que necesites)</li>
-                                <li>Revisa los duplicados marcados automáticamente</li>
-                                <li>Selecciona a quiénes enviar (usa los checkboxes)</li>
+                                <li>Carga tu archivo Excel con correos (incluso si están en la misma celda)</li>
+                                <li>Selecciona individualmente a quiénes enviar (usa los checkboxes)</li>
                                 <li>Configura EmailJS en el Paso 2</li>
                             </ol>
                         </p>
@@ -3186,3 +2940,4 @@ window.addEventListener('load', function() {
     </script>
 </body>
 </html>
+
