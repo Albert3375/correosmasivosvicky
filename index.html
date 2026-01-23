@@ -645,7 +645,7 @@
         border-radius: 8px;
         font-family: 'Poppins', sans-serif;
         font-size: 0.95rem;
-        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
+        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
     }
 
     .search-input:focus {
@@ -825,6 +825,26 @@
             gap: 10px;
         }
     }
+
+    /* Nuevas clases para correos múltiples */
+    .email-badge {
+        display: inline-block;
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin: 2px;
+    }
+    
+    .split-info {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 0.9rem;
+    }
 </style>
 <body>
     <div class="container">
@@ -851,7 +871,7 @@
                     <div class="upload-area" id="drop-area">
                         <i class="fas fa-file-excel upload-icon"></i>
                         <h3>Arrastra tu archivo Excel aquí</h3>
-                        <p>Sube un archivo Excel (.xlsx, .xls) con correos electrónicos. El sistema buscará automáticamente los correos en cualquier columna.</p>
+                        <p>Sube un archivo Excel (.xlsx, .xls) con correos electrónicos. El sistema detectará automáticamente correos aunque estén en una misma celda separados por comas, puntos y comas, saltos de línea, etc.</p>
                         <div style="margin-top: 20px;">
                             <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" hidden>
                             <button class="btn btn-primary" onclick="document.getElementById('excel-file').click()">
@@ -860,7 +880,7 @@
                         </div>
                         <div class="help-text">
                             <i class="fas fa-info-circle"></i>
-                            <strong>FORMATOS SOPORTADOS:</strong> Excel (.xlsx, .xls) y CSV. Los correos pueden estar en cualquier columna.
+                            <strong>NUEVO:</strong> Detecta múltiples correos en una sola celda (separados por comas, puntos y comas, espacios, saltos de línea).
                         </div>
                     </div>
 
@@ -881,6 +901,10 @@
                         <div class="stat-item">
                             <span class="stat-label">Porcentaje</span>
                             <div class="stat-value" id="selection-percentage">0%</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Celdas divididas</span>
+                            <div class="stat-value" id="split-count">0</div>
                         </div>
                     </div>
 
@@ -923,6 +947,13 @@
                         </div>
                     </div>
 
+                    <!-- Información de división de celdas -->
+                    <div id="split-info" class="split-info hidden">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Se detectaron celdas con múltiples correos:</strong> 
+                        <span id="split-details">0 celdas fueron divididas en correos individuales.</span>
+                    </div>
+
                     <!-- Búsqueda -->
                     <div id="search-container" class="search-box hidden">
                         <input type="text" id="search-emails" class="search-input" placeholder="Buscar correos o nombres...">
@@ -963,6 +994,7 @@
                                         <th>#</th>
                                         <th>Correo Electrónico</th>
                                         <th>Nombre</th>
+                                        <th>Origen</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
                                     </tr>
@@ -1251,6 +1283,7 @@ let failedCount = 0;
 let currentIndex = 0;
 let emailJSInitialized = false;
 let currentFilter = 'all'; // 'all', 'selected', 'unselected'
+let splitCellsCount = 0; // Contador de celdas divididas
 
 // Inicializar EmailJS
 function initEmailJS() {
@@ -1518,6 +1551,77 @@ async function handleFiles(files) {
     }
 }
 
+// FUNCIÓN MEJORADA: Detectar y separar múltiples correos en una celda
+function extractEmailsFromText(text) {
+    if (!text || typeof text !== 'string') return [];
+    
+    // Normalizar el texto: reemplazar diferentes separadores por comas
+    let normalizedText = text
+        .replace(/;/g, ',')       // Punto y coma por coma
+        .replace(/\s+/g, ',')     // Espacios múltiples por coma
+        .replace(/\n/g, ',')      // Saltos de línea por coma
+        .replace(/\r/g, ',')      // Retornos de carro por coma
+        .replace(/\|/g, ',')      // Pipes por coma
+        .replace(/:/g, ',')       // Dos puntos por coma
+        .replace(/,,+/g, ',')     // Múltiples comas por una sola
+        .trim();
+    
+    // Dividir por comas
+    const parts = normalizedText.split(',')
+        .map(part => part.trim())
+        .filter(part => part.length > 0);
+    
+    // Filtrar solo los que parecen correos electrónicos
+    const emails = parts.filter(part => {
+        // Verificar si es un correo válido
+        if (isValidEmail(part)) {
+            return true;
+        }
+        // También considerar que pueda tener espacios alrededor
+        const trimmed = part.trim();
+        return isValidEmail(trimmed);
+    });
+    
+    return emails;
+}
+
+// FUNCIÓN MEJORADA: Extraer nombres de celdas con múltiples correos
+function extractNameForEmail(email, cellValue, allCells) {
+    // Si el email está solo en la celda, intentar encontrar un nombre en otras celdas
+    if (cellValue.includes(',')) {
+        // La celda original tenía múltiples correos
+        const nameParts = cellValue.split(',')
+            .filter(part => !part.includes('@') && part.trim().length > 0);
+        
+        if (nameParts.length > 0) {
+            return nameParts[0].trim();
+        }
+    }
+    
+    // Buscar en todas las celdas de la fila
+    for (const cell of allCells) {
+        if (cell && typeof cell === 'string' && !cell.includes('@') && cell.trim().length > 1) {
+            return cell.trim();
+        }
+    }
+    
+    // Si no hay nombre, generarlo del email
+    const namePart = email.split('@')[0];
+    if (namePart.includes('.')) {
+        const nameParts = namePart.split('.');
+        return nameParts.map(part => 
+            part.charAt(0).toUpperCase() + part.slice(1)
+        ).join(' ');
+    } else if (namePart.includes('_')) {
+        const nameParts = namePart.split('_');
+        return nameParts.map(part => 
+            part.charAt(0).toUpperCase() + part.slice(1)
+        ).join(' ');
+    } else {
+        return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    }
+}
+
 async function processExcelFile(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1595,6 +1699,7 @@ function processWorkbook(workbook, resolve, reject) {
         const foundEmails = [];
         const seenEmails = new Set();
         let emailCount = 0;
+        splitCellsCount = 0;
         
         for (let row = 0; row < jsonData.length; row++) {
             const rowData = jsonData[row];
@@ -1618,63 +1723,76 @@ function processWorkbook(workbook, resolve, reject) {
                 if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
                     cellValue = String(cellValue).trim();
                     
-                    if (isValidEmail(cellValue)) {
-                        emailCount++;
-                        const email = cellValue.toLowerCase();
+                    // NUEVO: Verificar si la celda contiene múltiples correos
+                    const emailsInCell = extractEmailsFromText(cellValue);
+                    
+                    if (emailsInCell.length > 0) {
+                        // Contar si la celda fue dividida
+                        if (emailsInCell.length > 1) {
+                            splitCellsCount++;
+                        }
                         
-                        if (!seenEmails.has(email)) {
-                            seenEmails.add(email);
+                        for (const email of emailsInCell) {
+                            emailCount++;
                             
-                            let nombre = 'Cliente';
-                            
-                            for (let c = 0; c < cells.length; c++) {
-                                if (c !== col) {
-                                    const posibleNombre = cells[c];
-                                    if (posibleNombre && 
-                                        String(posibleNombre).trim() && 
-                                        !isValidEmail(String(posibleNombre).trim()) &&
-                                        String(posibleNombre).trim().length > 1) {
-                                        nombre = String(posibleNombre).trim();
-                                        break;
-                                    }
+                            if (!seenEmails.has(email)) {
+                                seenEmails.add(email);
+                                
+                                // Obtener nombre para este email
+                                const nombre = extractNameForEmail(email, cellValue, cells);
+                                
+                                // Determinar el origen del correo
+                                let origen = `Fila ${row + 1}, Col ${col + 1}`;
+                                if (emailsInCell.length > 1) {
+                                    origen += ` (${emailsInCell.indexOf(email) + 1}/${emailsInCell.length})`;
                                 }
+                                
+                                foundEmails.push({
+                                    id: Date.now() + Math.random() + email,
+                                    email: email.toLowerCase(),
+                                    nombre: nombre,
+                                    row: row + 1,
+                                    col: col + 1,
+                                    selected: true, // Por defecto todos seleccionados
+                                    status: 'pending',
+                                    origen: origen,
+                                    esDividido: emailsInCell.length > 1
+                                });
                             }
+                        }
+                    } else {
+                        // Método original para correos individuales
+                        if (isValidEmail(cellValue)) {
+                            emailCount++;
+                            const email = cellValue.toLowerCase();
                             
-                            if (nombre === 'Cliente') {
-                                const namePart = email.split('@')[0];
-                                if (namePart.includes('.')) {
-                                    const nameParts = namePart.split('.');
-                                    nombre = nameParts.map(part => 
-                                        part.charAt(0).toUpperCase() + part.slice(1)
-                                    ).join(' ');
-                                } else if (namePart.includes('_')) {
-                                    const nameParts = namePart.split('_');
-                                    nombre = nameParts.map(part => 
-                                        part.charAt(0).toUpperCase() + part.slice(1)
-                                    ).join(' ');
-                                } else {
-                                    nombre = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-                                }
+                            if (!seenEmails.has(email)) {
+                                seenEmails.add(email);
+                                
+                                let nombre = extractNameForEmail(email, cellValue, cells);
+                                
+                                foundEmails.push({
+                                    id: Date.now() + Math.random() + email,
+                                    email: email,
+                                    nombre: nombre,
+                                    row: row + 1,
+                                    col: col + 1,
+                                    selected: true,
+                                    status: 'pending',
+                                    origen: `Fila ${row + 1}, Col ${col + 1}`,
+                                    esDividido: false
+                                });
                             }
-                            
-                            foundEmails.push({
-                                id: Date.now() + Math.random(),
-                                email: email,
-                                nombre: nombre,
-                                row: row + 1,
-                                col: col + 1,
-                                selected: true, // Por defecto todos seleccionados
-                                status: 'pending'
-                            });
                         }
                     }
                 }
             }
         }
         
-        console.log(`Correos encontrados: ${emailCount}, Únicos: ${foundEmails.length}`);
+        console.log(`Correos encontrados: ${emailCount}, Únicos: ${foundEmails.length}, Celdas divididas: ${splitCellsCount}`);
         
         if (foundEmails.length === 0) {
+            // Método alternativo si no se encontraron correos
             const alternativeEmails = [];
             const alternativeSeen = new Set();
             
@@ -1697,58 +1815,80 @@ function processWorkbook(workbook, resolve, reject) {
                     if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
                         cellValue = String(cellValue).trim();
                         
-                        if (cellValue.includes('@') && 
-                            cellValue.includes('.') && 
-                            cellValue.length > 5 &&
-                            cellValue.indexOf('@') > 0 &&
-                            cellValue.indexOf('@') < cellValue.lastIndexOf('.') &&
-                            !cellValue.includes(' ') &&
-                            cellValue.lastIndexOf('.') > cellValue.indexOf('@') + 1) {
+                        // Intentar extraer correos con el método de división
+                        const emailsInCell = extractEmailsFromText(cellValue);
+                        
+                        if (emailsInCell.length > 0) {
+                            if (emailsInCell.length > 1) {
+                                splitCellsCount++;
+                            }
                             
-                            const email = cellValue.toLowerCase();
-                            
-                            if (!alternativeSeen.has(email)) {
-                                alternativeSeen.add(email);
-                                
-                                let nombre = 'Cliente';
-                                const namePart = email.split('@')[0];
-                                if (namePart.includes('.')) {
-                                    const nameParts = namePart.split('.');
-                                    nombre = nameParts.map(part => 
-                                        part.charAt(0).toUpperCase() + part.slice(1)
-                                    ).join(' ');
-                                } else if (namePart.includes('_')) {
-                                    const nameParts = namePart.split('_');
-                                    nombre = nameParts.map(part => 
-                                        part.charAt(0).toUpperCase() + part.slice(1)
-                                    ).join(' ');
-                                } else {
-                                    nombre = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+                            for (const email of emailsInCell) {
+                                if (!alternativeSeen.has(email)) {
+                                    alternativeSeen.add(email);
+                                    
+                                    const nombre = extractNameForEmail(email, cellValue, cells);
+                                    let origen = `Fila ${row + 1}, Col ${col + 1}`;
+                                    if (emailsInCell.length > 1) {
+                                        origen += ` (${emailsInCell.indexOf(email) + 1}/${emailsInCell.length})`;
+                                    }
+                                    
+                                    alternativeEmails.push({
+                                        id: Date.now() + Math.random() + email,
+                                        email: email.toLowerCase(),
+                                        nombre: nombre,
+                                        row: row + 1,
+                                        col: col + 1,
+                                        selected: true,
+                                        status: 'pending',
+                                        origen: origen,
+                                        esDividido: emailsInCell.length > 1
+                                    });
                                 }
+                            }
+                        } else {
+                            // Verificar patrón simple de correo
+                            if (cellValue.includes('@') && 
+                                cellValue.includes('.') && 
+                                cellValue.length > 5 &&
+                                cellValue.indexOf('@') > 0 &&
+                                cellValue.indexOf('@') < cellValue.lastIndexOf('.') &&
+                                !cellValue.includes(' ') &&
+                                cellValue.lastIndexOf('.') > cellValue.indexOf('@') + 1) {
                                 
-                                alternativeEmails.push({
-                                    id: Date.now() + Math.random(),
-                                    email: email,
-                                    nombre: nombre,
-                                    row: row + 1,
-                                    col: col + 1,
-                                    selected: true,
-                                    status: 'pending'
-                                });
+                                const email = cellValue.toLowerCase();
+                                
+                                if (!alternativeSeen.has(email)) {
+                                    alternativeSeen.add(email);
+                                    
+                                    const nombre = extractNameForEmail(email, cellValue, cells);
+                                    
+                                    alternativeEmails.push({
+                                        id: Date.now() + Math.random() + email,
+                                        email: email,
+                                        nombre: nombre,
+                                        row: row + 1,
+                                        col: col + 1,
+                                        selected: true,
+                                        status: 'pending',
+                                        origen: `Fila ${row + 1}, Col ${col + 1}`,
+                                        esDividido: false
+                                    });
+                                }
                             }
                         }
                     }
                 }
             }
             
-            console.log(`Correos encontrados con patrón flexible: ${alternativeEmails.length}`);
+            console.log(`Correos encontrados con métodos alternativos: ${alternativeEmails.length}`);
             
             if (alternativeEmails.length === 0) {
                 reject(new Error('No se encontraron correos electrónicos en el archivo. Asegúrate de que el archivo contenga direcciones de correo.'));
                 return;
             } else {
                 recipients = alternativeEmails;
-                toastr.warning(`Se encontraron ${alternativeEmails.length} correos usando búsqueda flexible`);
+                toastr.warning(`Se encontraron ${alternativeEmails.length} correos usando búsqueda avanzada`);
             }
         } else {
             recipients = foundEmails;
@@ -1764,6 +1904,15 @@ function processWorkbook(workbook, resolve, reject) {
         displayRecipients();
         updateSelectionSummary();
         updateReadyCount();
+        
+        // Mostrar información de celdas divididas
+        if (splitCellsCount > 0) {
+            document.getElementById('split-info').classList.remove('hidden');
+            document.getElementById('split-details').textContent = 
+                `${splitCellsCount} celdas fueron divididas en ${recipients.length} correos individuales.`;
+            document.getElementById('split-count').textContent = splitCellsCount;
+        }
+        
         resolve();
         
     } catch (error) {
@@ -1805,7 +1954,13 @@ function displayRecipients() {
     
     updateSelectAllCheckbox();
     
-    toastr.success(`Encontrados ${recipients.length} correos únicos (${selectedRecipients.size} seleccionados)`);
+    // Mostrar información sobre celdas divididas
+    let splitInfo = '';
+    if (splitCellsCount > 0) {
+        splitInfo = ` (${splitCellsCount} celdas divididas)`;
+    }
+    
+    toastr.success(`Encontrados ${recipients.length} correos únicos${splitInfo} (${selectedRecipients.size} seleccionados)`);
 }
 
 function getFilteredRecipients() {
@@ -1817,7 +1972,8 @@ function getFilteredRecipients() {
     if (searchTerm) {
         filtered = filtered.filter(recipient => 
             recipient.email.toLowerCase().includes(searchTerm) || 
-            recipient.nombre.toLowerCase().includes(searchTerm)
+            recipient.nombre.toLowerCase().includes(searchTerm) ||
+            recipient.origen.toLowerCase().includes(searchTerm)
         );
     }
     
@@ -1839,6 +1995,11 @@ function createRecipientRow(recipient, index) {
         row.classList.add('selected');
     }
     
+    // Marcar filas que vinieron de celdas divididas
+    if (recipient.esDividido) {
+        row.style.backgroundColor = 'rgba(255, 243, 205, 0.3)';
+    }
+    
     row.innerHTML = `
         <td>
             <div class="checkbox-group">
@@ -1847,8 +2008,12 @@ function createRecipientRow(recipient, index) {
             </div>
         </td>
         <td>${index + 1}</td>
-        <td>${recipient.email}</td>
+        <td>
+            ${recipient.email}
+            ${recipient.esDividido ? '<span class="email-badge"><i class="fas fa-code-branch"></i> Dividido</span>' : ''}
+        </td>
         <td>${recipient.nombre}</td>
+        <td>${recipient.origen}</td>
         <td>
             <span class="status ${isSelected ? 'selected' : 'pending'}">
                 ${isSelected ? 'Seleccionado' : 'No seleccionado'}
@@ -2091,12 +2256,14 @@ function clearRecipients() {
         if (result.isConfirmed) {
             recipients = [];
             selectedRecipients.clear();
+            splitCellsCount = 0;
             
             document.getElementById('recipients-body').innerHTML = '';
             document.getElementById('recipients-preview').classList.add('hidden');
             document.getElementById('selection-controls').classList.add('hidden');
             document.getElementById('selection-stats').classList.add('hidden');
             document.getElementById('search-container').classList.add('hidden');
+            document.getElementById('split-info').classList.add('hidden');
             document.getElementById('excel-file').value = '';
             
             updateSelectionSummary();
@@ -2112,16 +2279,16 @@ function downloadTemplate() {
         ['Juan Pérez', 'juan.perez@ejemplo.com', 'TechCorp', '555-1234'],
         ['María García', 'maria.garcia@ejemplo.com', 'Innovatech', '555-5678'],
         ['Carlos López', 'carlos.lopez@ejemplo.com', 'Digital Solutions', '555-9012'],
-        ['Ana Rodríguez', 'ana.rodriguez@ejemplo.com', 'WebMasters', '555-3456'],
-        ['Pedro Sánchez', 'pedro.sanchez@ejemplo.com', 'NetSystems', '555-7890']
+        ['Ana Rodríguez', 'ana.rodriguez@ejemplo.com, pedro@empresa.com', 'WebMasters', '555-3456'],
+        ['Pedro Sánchez; luis@empresa.com', 'pedro.sanchez@ejemplo.com', 'NetSystems', '555-7890']
     ];
     
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Destinatarios");
     
-    XLSX.writeFile(wb, "plantilla_destinatarios.xlsx");
-    toastr.success('Plantilla descargada');
+    XLSX.writeFile(wb, "plantilla_destinatarios_multicorreos.xlsx");
+    toastr.success('Plantilla con ejemplos de múltiples correos descargada');
 }
 
 // Funciones de navegación
@@ -2673,6 +2840,7 @@ function updateRecipientStatus(id, status) {
 
 // Funciones de utilidad
 function isValidEmail(email) {
+    // Expresión regular mejorada para validar correos
     const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return re.test(email);
 }
@@ -2729,21 +2897,30 @@ window.addEventListener('load', function() {
                 title: '¡Bienvenido a MailMaster PRO!',
                 html: `
                     <div style="text-align: left; line-height: 1.6;">
-                        <p><strong>Sistema de envío REAL de correos:</strong></p>
+                        <p><strong>NUEVA FUNCIÓN: Detección de múltiples correos en una celda</strong></p>
+                        <p>Ahora el sistema puede detectar correos separados por:</p>
+                        <ul style="margin-left: 20px; margin-top: 10px;">
+                            <li>Comas: correo1@ejemplo.com, correo2@ejemplo.com</li>
+                            <li>Puntos y comas: correo1@ejemplo.com; correo2@ejemplo.com</li>
+                            <li>Saltos de línea</li>
+                            <li>Espacios múltiples</li>
+                            <li>Pipes (|) y dos puntos (:)</li>
+                        </ul>
+                        <br>
+                        <p><strong>Características principales:</strong></p>
                         <ol style="margin-left: 20px; margin-top: 10px;">
+                            <li><strong>Detección inteligente:</strong> Encuentra correos incluso en celdas combinadas</li>
                             <li><strong>Selección individual:</strong> Elige exactamente a quiénes enviar correos</li>
                             <li><strong>Envío real:</strong> Usa EmailJS para enviar correos reales</li>
-                            <li><strong>Configuración simple:</strong> Solo necesitas una cuenta gratuita de EmailJS</li>
                             <li><strong>Personalización completa:</strong> Usa etiquetas para personalizar cada correo</li>
                             <li><strong>Control total:</strong> Selecciona, filtra y organiza tus destinatarios</li>
-                            <li><strong>Seguro:</strong> Sin almacenar datos en servidores externos</li>
                         </ol>
                         <br>
                         <p style="color: #667eea;">
                             <i class="fas fa-lightbulb"></i> 
                             <strong>PRIMEROS PASOS:</strong> 
                             <ol style="margin-left: 20px;">
-                                <li>Carga tu archivo Excel con correos</li>
+                                <li>Carga tu archivo Excel con correos (incluso si están en la misma celda)</li>
                                 <li>Selecciona individualmente a quiénes enviar (usa los checkboxes)</li>
                                 <li>Configura EmailJS en el Paso 2</li>
                             </ol>
