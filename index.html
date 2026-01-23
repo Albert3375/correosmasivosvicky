@@ -851,7 +851,7 @@
                     <div class="upload-area" id="drop-area">
                         <i class="fas fa-file-excel upload-icon"></i>
                         <h3>Arrastra tu archivo Excel aquí</h3>
-                        <p>Sube un archivo Excel (.xlsx, .xls) con correos electrónicos. El sistema buscará automáticamente los correos en cualquier columna.</p>
+                        <p>Sube un archivo Excel (.xlsx, .xls) con correos electrónicos. El sistema buscará automáticamente los correos en cualquier columna y eliminará duplicados.</p>
                         <div style="margin-top: 20px;">
                             <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" hidden>
                             <button class="btn btn-primary" onclick="document.getElementById('excel-file').click()">
@@ -860,7 +860,7 @@
                         </div>
                         <div class="help-text">
                             <i class="fas fa-info-circle"></i>
-                            <strong>FORMATOS SOPORTADOS:</strong> Excel (.xlsx, .xls) y CSV. Los correos pueden estar en cualquier columna.
+                            <strong>ELIMINACIÓN AUTOMÁTICA DE DUPLICADOS:</strong> El sistema detecta y elimina correos repetidos automáticamente, manteniendo solo correos únicos.
                         </div>
                     </div>
 
@@ -916,6 +916,9 @@
                             </button>
                             <button class="btn btn-sm btn-primary" onclick="selectRandom(10)">
                                 <i class="fas fa-random"></i> Aleatorios (10)
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="checkForDuplicates()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none;">
+                                <i class="fas fa-filter"></i> Verificar Duplicados
                             </button>
                             <button class="btn btn-sm btn-danger" onclick="removeSelected()">
                                 <i class="fas fa-trash"></i> Eliminar Seleccionados
@@ -1342,7 +1345,6 @@ function testEmailJSConnection() {
     }
 }
 
-
 function saveEmailJSConfig() {
     const userId = document.getElementById('emailjs-user-id').value;
     const serviceId = document.getElementById('emailjs-service-id').value;
@@ -1564,8 +1566,6 @@ async function processExcelFile(file) {
     });
 }
 
-// En la función processWorkbook (dentro del try-catch), modifico la sección de procesamiento:
-
 function processWorkbook(workbook, resolve, reject) {
     try {
         if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
@@ -1622,12 +1622,10 @@ function processWorkbook(workbook, resolve, reject) {
                 if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
                     cellValue = String(cellValue).trim();
                     
-                    // Mejor detección de correos electrónicos
                     if (isValidEmail(cellValue)) {
                         emailCount++;
                         const email = cellValue.toLowerCase().trim();
                         
-                        // Verificar si es un correo duplicado
                         if (seenEmails.has(email)) {
                             duplicateCount++;
                             duplicateEmails.push({
@@ -1641,7 +1639,6 @@ function processWorkbook(workbook, resolve, reject) {
                             
                             let nombre = 'Cliente';
                             
-                            // Buscar nombre en la misma fila
                             for (let c = 0; c < cells.length; c++) {
                                 if (c !== col) {
                                     const posibleNombre = cells[c];
@@ -1655,7 +1652,6 @@ function processWorkbook(workbook, resolve, reject) {
                                 }
                             }
                             
-                            // Si no encontramos nombre, crear uno del correo
                             if (nombre === 'Cliente') {
                                 nombre = extractNameFromEmail(email);
                             }
@@ -1677,7 +1673,6 @@ function processWorkbook(workbook, resolve, reject) {
         
         console.log(`Correos encontrados: ${emailCount}, Únicos: ${foundEmails.length}, Duplicados: ${duplicateCount}`);
         
-        // Si no se encontraron correos con validación estricta, intentar con validación flexible
         if (foundEmails.length === 0) {
             const alternativeEmails = processWithFlexibleValidation(jsonData);
             
@@ -1691,13 +1686,11 @@ function processWorkbook(workbook, resolve, reject) {
         } else {
             recipients = foundEmails;
             
-            // Mostrar información sobre duplicados eliminados
             if (duplicateCount > 0) {
                 showDuplicateReport(duplicateEmails, duplicateCount, foundEmails.length);
             }
         }
         
-        // Seleccionar todos por defecto
         recipients.forEach(recipient => {
             if (recipient.selected) {
                 selectedRecipients.add(recipient.id);
@@ -1715,7 +1708,6 @@ function processWorkbook(workbook, resolve, reject) {
     }
 }
 
-// Nueva función para procesamiento con validación flexible
 function processWithFlexibleValidation(jsonData) {
     const alternativeEmails = [];
     const alternativeSeen = new Set();
@@ -1740,7 +1732,6 @@ function processWithFlexibleValidation(jsonData) {
             if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
                 cellValue = String(cellValue).trim();
                 
-                // Validación más flexible para correos
                 if (cellValue.includes('@') && 
                     cellValue.includes('.') && 
                     cellValue.length > 5 &&
@@ -1751,7 +1742,6 @@ function processWithFlexibleValidation(jsonData) {
                     
                     const email = cellValue.toLowerCase().trim();
                     
-                    // Verificar si es duplicado
                     if (alternativeSeen.has(email)) {
                         duplicateEmails.push({
                             email: email,
@@ -1779,7 +1769,6 @@ function processWithFlexibleValidation(jsonData) {
         }
     }
     
-    // Mostrar reporte de duplicados si los hubo
     if (duplicateEmails.length > 0) {
         console.log(`Duplicados encontrados con validación flexible: ${duplicateEmails.length}`);
     }
@@ -1787,7 +1776,6 @@ function processWithFlexibleValidation(jsonData) {
     return alternativeEmails;
 }
 
-// Función para extraer nombre del correo
 function extractNameFromEmail(email) {
     const namePart = email.split('@')[0];
     let nombre = 'Cliente';
@@ -1814,15 +1802,12 @@ function extractNameFromEmail(email) {
     return nombre;
 }
 
-// Función para obtener la fila original de un correo duplicado
 function getOriginalRowForEmail(foundEmails, email) {
     const recipient = foundEmails.find(r => r.email === email);
     return recipient ? recipient.row : 'Desconocido';
 }
 
-// Función para mostrar reporte de duplicados
 function showDuplicateReport(duplicateEmails, duplicateCount, uniqueCount) {
-    // Mostrar alerta con información de duplicados
     Swal.fire({
         title: 'Correos Duplicados Detectados',
         html: `
@@ -1865,18 +1850,9 @@ function showDuplicateReport(duplicateEmails, duplicateCount, uniqueCount) {
         width: 600
     });
     
-    // También mostrar toast de información
     toastr.info(`Se eliminaron ${duplicateCount} correos duplicados. Se mantuvieron ${uniqueCount} correos únicos.`);
 }
 
-// Mejorar la función de validación de correos
-function isValidEmail(email) {
-    // Expresión regular más completa para validar correos
-    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(email.toLowerCase());
-}
-
-// Agregar función para verificar duplicados manualmente
 function checkForDuplicates() {
     if (recipients.length === 0) {
         toastr.warning('No hay destinatarios cargados');
@@ -1959,7 +1935,6 @@ function removeAllDuplicates() {
     const removedCount = recipients.length - uniqueRecipients.length;
     recipients = uniqueRecipients;
     
-    // Actualizar selecciones
     selectedRecipients.clear();
     recipients.forEach(recipient => {
         if (recipient.selected) {
@@ -1981,29 +1956,6 @@ function removeAllDuplicates() {
     toastr.success(`Se eliminaron ${removedCount} duplicados. Quedaron ${recipients.length} correos únicos.`);
 }
 
-// Agregar botón para verificar duplicados en los controles de selección
-function addDuplicateCheckButton() {
-    const selectionControls = document.getElementById('selection-controls');
-    if (!selectionControls) return;
-    
-    const duplicateBtn = document.createElement('button');
-    duplicateBtn.className = 'btn btn-sm btn-warning';
-    duplicateBtn.innerHTML = '<i class="fas fa-filter"></i> Verificar Duplicados';
-    duplicateBtn.onclick = checkForDuplicates;
-    duplicateBtn.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
-    duplicateBtn.style.color = 'white';
-    duplicateBtn.style.border = 'none';
-    
-    // Insertar después del botón de eliminar seleccionados
-    const deleteBtn = selectionControls.querySelector('.btn-danger');
-    if (deleteBtn) {
-        deleteBtn.parentNode.insertBefore(duplicateBtn, deleteBtn.nextSibling);
-    } else {
-        selectionControls.appendChild(duplicateBtn);
-    }
-}
-
-
 function displayRecipients() {
     const tbody = document.getElementById('recipients-body');
     const preview = document.getElementById('recipients-preview');
@@ -2018,8 +1970,7 @@ function displayRecipients() {
     count.textContent = recipients.length;
     totalCount.textContent = recipients.length;
     recipientSelectedCount.textContent = selectedRecipients.size;
-        addDuplicateCheckButton();
-
+    
     updateSelectionStats();
     
     const filteredRecipients = getFilteredRecipients();
@@ -2046,7 +1997,6 @@ function getFilteredRecipients() {
     
     let filtered = recipients;
     
-    // Aplicar filtro de búsqueda
     if (searchTerm) {
         filtered = filtered.filter(recipient => 
             recipient.email.toLowerCase().includes(searchTerm) || 
@@ -2054,7 +2004,6 @@ function getFilteredRecipients() {
         );
     }
     
-    // Aplicar filtro de selección
     if (currentFilter === 'selected') {
         filtered = filtered.filter(recipient => selectedRecipients.has(recipient.id));
     } else if (currentFilter === 'unselected') {
@@ -2109,7 +2058,6 @@ function toggleRecipientSelection(id, checkbox) {
                 statusCell.textContent = 'Seleccionado';
                 statusCell.className = 'status selected';
             }
-            // Actualizar botón
             const actionBtn = row.querySelector('td:last-child button');
             if (actionBtn) {
                 actionBtn.innerHTML = '<i class="fas fa-times"></i>';
@@ -2125,7 +2073,6 @@ function toggleRecipientSelection(id, checkbox) {
                 statusCell.textContent = 'No seleccionado';
                 statusCell.className = 'status pending';
             }
-            // Actualizar botón
             const actionBtn = row.querySelector('td:last-child button');
             if (actionBtn) {
                 actionBtn.innerHTML = '<i class="fas fa-check"></i>';
@@ -2153,7 +2100,6 @@ function filterRecipients() {
 function filterRecipientsBySelection(filter) {
     currentFilter = filter;
     
-    // Actualizar botones de filtro
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -2172,7 +2118,6 @@ function filterRecipientsBySelection(filter) {
 function toggleAllCheckboxes(source) {
     const filteredRecipients = getFilteredRecipients();
     
-    // Determinar qué acción tomar
     let allChecked = true;
     filteredRecipients.forEach(recipient => {
         if (!selectedRecipients.has(recipient.id)) {
@@ -2181,12 +2126,10 @@ function toggleAllCheckboxes(source) {
     });
     
     if (allChecked) {
-        // Deseleccionar todos los filtrados
         filteredRecipients.forEach(recipient => {
             selectedRecipients.delete(recipient.id);
         });
     } else {
-        // Seleccionar todos los filtrados
         filteredRecipients.forEach(recipient => {
             selectedRecipients.add(recipient.id);
         });
@@ -2205,7 +2148,6 @@ function updateSelectionStats() {
     document.getElementById('unselected-count').textContent = unselectedCount;
     document.getElementById('selection-percentage').textContent = `${percentage}%`;
     
-    // Actualizar contador en la tabla
     document.getElementById('recipient-selected-count').textContent = selectedCount;
 }
 
@@ -2263,10 +2205,8 @@ function invertSelection() {
 }
 
 function selectRandom(count) {
-    // Deseleccionar todos primero
     selectedRecipients.clear();
     
-    // Seleccionar aleatoriamente
     const shuffled = [...recipients].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, Math.min(count, recipients.length));
     
@@ -2357,7 +2297,6 @@ function downloadTemplate() {
     toastr.success('Plantilla descargada');
 }
 
-// Funciones de navegación
 function nextStep() {
     if (currentStep === 1) {
         if (recipients.length === 0) {
@@ -2370,7 +2309,6 @@ function nextStep() {
             return;
         }
         
-        // Actualizar resumen de selección
         updateSelectionSummary();
     }
     
@@ -2412,7 +2350,7 @@ function nextStep() {
                 cancelButtonText: 'Continuar de todos modos'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    return; // Permanece en el paso 2
+                    return;
                 } else {
                     goToNextStep();
                 }
@@ -2479,7 +2417,6 @@ function prevStep() {
 }
 
 function goBackToSelection() {
-    // Ir directamente al paso 1
     document.getElementById(`step-${currentStep}`).classList.add('hidden');
     
     const currentStepEl = document.querySelector(`.step[data-step="${currentStep}"]`);
@@ -2492,7 +2429,6 @@ function goBackToSelection() {
     const step1El = document.querySelector(`.step[data-step="1"]`);
     step1El.classList.add('active');
     
-    // Actualizar líneas de paso
     document.querySelectorAll('.step-line').forEach(line => {
         line.classList.remove('active');
     });
@@ -2506,7 +2442,6 @@ function goBackToSelection() {
     });
 }
 
-// Funciones del editor de mensajes
 function insertAtCursor(elementId, text) {
     const textarea = document.getElementById(elementId);
     const start = textarea.selectionStart;
@@ -2518,7 +2453,6 @@ function insertAtCursor(elementId, text) {
     textarea.focus();
 }
 
-// Funciones de envío
 function updateReadyCount() {
     const selectedCount = selectedRecipients.size;
     document.getElementById('ready-count').textContent = selectedCount;
@@ -2553,7 +2487,6 @@ async function sendTestEmail() {
     const subject = document.getElementById('email-subject').value;
     let message = document.getElementById('email-message').value;
     
-    // Personalizar mensaje
     message = message
         .replace(/{nombre}/g, 'Usuario de Prueba')
         .replace(/{email}/g, testEmail)
@@ -2629,7 +2562,6 @@ async function sendTestEmail() {
 async function startSending() {
     const selectedCount = selectedRecipients.size;
 
-    // 🔒 Validación mínima: al menos 1 seleccionado
     if (selectedCount < 1) {
         Swal.fire({
             icon: 'warning',
@@ -2639,13 +2571,11 @@ async function startSending() {
         return;
     }
 
-    // 🚫 Evitar envíos duplicados
     if (isSending) {
         toastr.warning('Ya hay un envío en progreso');
         return;
     }
 
-    // ⚙️ EmailJS configurado
     if (!emailJSInitialized) {
         Swal.fire({
             icon: 'error',
@@ -2655,7 +2585,6 @@ async function startSending() {
         return;
     }
 
-    // 📬 Confirmación final
     Swal.fire({
         title: '¿Iniciar envío REAL?',
         html: `
@@ -2688,7 +2617,6 @@ async function startSending() {
         }
     });
 }
-    
 
 function prepareSending() {
     isSending = true;
@@ -2696,7 +2624,6 @@ function prepareSending() {
     sentCount = 0;
     failedCount = 0;
 
-    // ✅ FIX: asegurar comparación correcta de IDs
     const recipientsToSend = recipients.filter(r =>
         selectedRecipients.has(String(r.id))
     );
@@ -2713,7 +2640,6 @@ function prepareSending() {
         sendNextEmail(recipientsToSend);
     }, speed);
 }
-
 
 async function sendNextEmail(recipientsToSend) {
     if (currentIndex >= recipientsToSend.length) {
@@ -2754,7 +2680,6 @@ async function sendNextEmail(recipientsToSend) {
         sentCount++;
         updateRecipientStatus(recipient.id, 'success');
         
-        // Mostrar progreso en consola
         console.log(`✅ Correo ${currentIndex + 1}/${recipientsToSend.length} enviado a: ${recipient.email}`);
         
     } catch (error) {
@@ -2763,7 +2688,6 @@ async function sendNextEmail(recipientsToSend) {
         
         console.error(`❌ Error enviando a ${recipient.email}:`, error);
         
-        // Guardar error en log
         saveErrorLog(recipient.email, error);
     }
     
@@ -2799,7 +2723,6 @@ function finishSending(total) {
     
     const successRate = total > 0 ? Math.round((sentCount / total) * 100) : 0;
     
-    // Mostrar log de errores si hay
     let errorLogHtml = '';
     const errorLogs = JSON.parse(localStorage.getItem('mailmaster_error_logs') || '[]');
     
@@ -2850,7 +2773,6 @@ function finishSending(total) {
         width: 500
     });
     
-    // Limpiar logs antiguos
     localStorage.removeItem('mailmaster_error_logs');
     
     document.getElementById('send-ready').classList.remove('hidden');
@@ -2882,7 +2804,6 @@ function cancelSending() {
     });
 }
 
-// Función para actualizar estado del destinatario
 function updateRecipientStatus(id, status) {
     const rows = document.querySelectorAll('#recipients-body tr');
     
@@ -2904,10 +2825,9 @@ function updateRecipientStatus(id, status) {
     }
 }
 
-// Funciones de utilidad
 function isValidEmail(email) {
-    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return re.test(email);
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email.toLowerCase());
 }
 
 function showLoading(text) {
@@ -2937,7 +2857,6 @@ function loadSavedData() {
     if (savedMessage) document.getElementById('email-message').value = savedMessage;
 }
 
-// Guardar datos automáticamente
 document.getElementById('sender-email').addEventListener('input', function() {
     localStorage.setItem('mailmaster_sender_email', this.value);
 });
@@ -2954,7 +2873,6 @@ document.getElementById('email-message').addEventListener('input', function() {
     localStorage.setItem('mailmaster_message', this.value);
 });
 
-// Instrucciones iniciales
 window.addEventListener('load', function() {
     if (!localStorage.getItem('mailmaster_welcome_shown')) {
         setTimeout(() => {
@@ -2996,6 +2914,3 @@ window.addEventListener('load', function() {
     </script>
 </body>
 </html>
-
-
-
