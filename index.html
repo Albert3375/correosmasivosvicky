@@ -645,7 +645,7 @@
         border-radius: 8px;
         font-family: 'Poppins', sans-serif;
         font-size: 0.95rem;
-        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
+        background: var(--light) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/path%3e%3c/svg%3e") no-repeat right 15px center;
     }
 
     .search-input:focus {
@@ -993,7 +993,7 @@
                                         </th>
                                         <th>#</th>
                                         <th>Correo Electrónico</th>
-                                        <th>Nombre</th>
+                                        <th>Nombre (RAZON SOCIAL)</th>
                                         <th>Origen</th>
                                         <th>Estado</th>
                                         <th>Acciones</th>
@@ -1284,6 +1284,7 @@ let currentIndex = 0;
 let emailJSInitialized = false;
 let currentFilter = 'all'; // 'all', 'selected', 'unselected'
 let splitCellsCount = 0; // Contador de celdas divididas
+let headerMap = {}; // Mapeo de encabezados
 
 // Inicializar EmailJS
 function initEmailJS() {
@@ -1585,41 +1586,127 @@ function extractEmailsFromText(text) {
     return emails;
 }
 
-// FUNCIÓN MEJORADA: Extraer nombres de celdas con múltiples correos
-function extractNameForEmail(email, cellValue, allCells) {
-    // Si el email está solo en la celda, intentar encontrar un nombre en otras celdas
-    if (cellValue.includes(',')) {
-        // La celda original tenía múltiples correos
-        const nameParts = cellValue.split(',')
-            .filter(part => !part.includes('@') && part.trim().length > 0);
-        
-        if (nameParts.length > 0) {
-            return nameParts[0].trim();
+// FUNCIÓN MEJORADA: Extraer nombres específicamente del campo "RAZON SOCIAL"
+function extractNameFromRazonSocial(rowData, razonSocialIndex, emailIndex) {
+    if (!rowData || !razonSocialIndex) return '';
+    
+    let razonSocial = '';
+    
+    // Buscar "RAZON SOCIAL" en la fila
+    if (Array.isArray(rowData)) {
+        if (razonSocialIndex < rowData.length) {
+            razonSocial = String(rowData[razonSocialIndex] || '').trim();
+        }
+    } else if (typeof rowData === 'object') {
+        // Si es un objeto, buscar la propiedad que contenga "RAZON SOCIAL"
+        for (const key in rowData) {
+            if (key.toString().toUpperCase().includes('RAZON SOCIAL') || 
+                key.toString().toUpperCase().includes('RAZÓN SOCIAL') ||
+                key.toString().toUpperCase().includes('NOMBRE') ||
+                key.toString().toUpperCase().includes('EMPRESA')) {
+                razonSocial = String(rowData[key] || '').trim();
+                break;
+            }
         }
     }
     
-    // Buscar en todas las celdas de la fila
-    for (const cell of allCells) {
-        if (cell && typeof cell === 'string' && !cell.includes('@') && cell.trim().length > 1) {
-            return cell.trim();
+    if (razonSocial) {
+        return razonSocial;
+    }
+    
+    // Si no se encuentra "RAZON SOCIAL", intentar obtener del email
+    let email = '';
+    if (Array.isArray(rowData)) {
+        if (emailIndex < rowData.length) {
+            email = String(rowData[emailIndex] || '').trim();
+        }
+    } else if (typeof rowData === 'object') {
+        for (const key in rowData) {
+            if (key.toString().toUpperCase().includes('CORREO') || 
+                key.toString().toUpperCase().includes('EMAIL') ||
+                key.toString().toUpperCase().includes('E-MAIL')) {
+                email = String(rowData[key] || '').trim();
+                break;
+            }
         }
     }
     
-    // Si no hay nombre, generarlo del email
-    const namePart = email.split('@')[0];
-    if (namePart.includes('.')) {
-        const nameParts = namePart.split('.');
-        return nameParts.map(part => 
-            part.charAt(0).toUpperCase() + part.slice(1)
-        ).join(' ');
-    } else if (namePart.includes('_')) {
-        const nameParts = namePart.split('_');
-        return nameParts.map(part => 
-            part.charAt(0).toUpperCase() + part.slice(1)
-        ).join(' ');
-    } else {
-        return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    if (email && isValidEmail(email)) {
+        // Extraer nombre del email
+        const namePart = email.split('@')[0];
+        if (namePart.includes('.')) {
+            const nameParts = namePart.split('.');
+            return nameParts.map(part => 
+                part.charAt(0).toUpperCase() + part.slice(1)
+            ).join(' ');
+        } else if (namePart.includes('_')) {
+            const nameParts = namePart.split('_');
+            return nameParts.map(part => 
+                part.charAt(0).toUpperCase() + part.slice(1)
+            ).join(' ');
+        } else {
+            return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+        }
     }
+    
+    return 'Sin nombre';
+}
+
+// FUNCIÓN PARA DETECTAR ENCABEZADOS
+function detectHeaders(jsonData) {
+    headerMap = {
+        razonSocial: -1,
+        email: -1,
+        correo: -1,
+        nombre: -1,
+        empresa: -1
+    };
+    
+    if (!jsonData || jsonData.length === 0) return headerMap;
+    
+    // Buscar en la primera fila (normalmente los encabezados)
+    const firstRow = jsonData[0];
+    
+    if (Array.isArray(firstRow)) {
+        for (let i = 0; i < firstRow.length; i++) {
+            const cellValue = String(firstRow[i] || '').toUpperCase().trim();
+            
+            if (cellValue.includes('RAZON SOCIAL') || cellValue.includes('RAZÓN SOCIAL')) {
+                headerMap.razonSocial = i;
+            }
+            if (cellValue.includes('CORREO') || cellValue.includes('EMAIL') || cellValue.includes('E-MAIL')) {
+                headerMap.email = i;
+            }
+            if (cellValue.includes('NOMBRE')) {
+                headerMap.nombre = i;
+            }
+            if (cellValue.includes('EMPRESA')) {
+                headerMap.empresa = i;
+            }
+        }
+    } else if (typeof firstRow === 'object') {
+        // Si los datos ya están en formato objeto con encabezados
+        const keys = Object.keys(firstRow);
+        for (const key of keys) {
+            const keyUpper = key.toUpperCase();
+            
+            if (keyUpper.includes('RAZON SOCIAL') || keyUpper.includes('RAZÓN SOCIAL')) {
+                headerMap.razonSocial = key;
+            }
+            if (keyUpper.includes('CORREO') || keyUpper.includes('EMAIL') || keyUpper.includes('E-MAIL')) {
+                headerMap.email = key;
+            }
+            if (keyUpper.includes('NOMBRE')) {
+                headerMap.nombre = key;
+            }
+            if (keyUpper.includes('EMPRESA')) {
+                headerMap.empresa = key;
+            }
+        }
+    }
+    
+    console.log('Encabezados detectados:', headerMap);
+    return headerMap;
 }
 
 async function processExcelFile(file) {
@@ -1696,12 +1783,18 @@ function processWorkbook(workbook, resolve, reject) {
             return;
         }
         
+        // Detectar encabezados
+        detectHeaders(jsonData);
+        
         const foundEmails = [];
         const seenEmails = new Set();
         let emailCount = 0;
         splitCellsCount = 0;
         
-        for (let row = 0; row < jsonData.length; row++) {
+        // Determinar el índice de inicio de datos (saltar encabezados si existen)
+        const startRow = headerMap.razonSocial !== -1 || headerMap.email !== -1 ? 1 : 0;
+        
+        for (let row = startRow; row < jsonData.length; row++) {
             const rowData = jsonData[row];
             
             if (!rowData || (Array.isArray(rowData) && rowData.length === 0)) {
@@ -1712,18 +1805,28 @@ function processWorkbook(workbook, resolve, reject) {
             if (Array.isArray(rowData)) {
                 cells = rowData;
             } else if (typeof rowData === 'object') {
-                cells = Object.values(rowData);
+                cells = rowData;
             } else {
                 cells = [rowData];
             }
             
-            for (let col = 0; col < cells.length; col++) {
-                let cellValue = cells[col];
+            // Buscar correos en todas las columnas
+            for (let col = 0; col < (Array.isArray(cells) ? cells.length : Object.keys(cells).length); col++) {
+                let cellValue;
+                
+                if (Array.isArray(cells)) {
+                    cellValue = cells[col];
+                } else {
+                    // Si es objeto, buscar en todas las propiedades
+                    const keys = Object.keys(cells);
+                    const key = col < keys.length ? keys[col] : null;
+                    cellValue = key ? cells[key] : null;
+                }
                 
                 if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
                     cellValue = String(cellValue).trim();
                     
-                    // NUEVO: Verificar si la celda contiene múltiples correos
+                    // Buscar correos en la celda
                     const emailsInCell = extractEmailsFromText(cellValue);
                     
                     if (emailsInCell.length > 0) {
@@ -1738,11 +1841,38 @@ function processWorkbook(workbook, resolve, reject) {
                             if (!seenEmails.has(email)) {
                                 seenEmails.add(email);
                                 
-                                // Obtener nombre para este email
-                                const nombre = extractNameForEmail(email, cellValue, cells);
+                                // Obtener nombre del campo "RAZON SOCIAL"
+                                let nombre = '';
+                                
+                                if (headerMap.razonSocial !== -1) {
+                                    if (Array.isArray(rowData) && headerMap.razonSocial < rowData.length) {
+                                        nombre = String(rowData[headerMap.razonSocial] || '').trim();
+                                    } else if (typeof rowData === 'object') {
+                                        // Si es un objeto, buscar la propiedad correspondiente
+                                        const keys = Object.keys(rowData);
+                                        for (const key of keys) {
+                                            if (key.toUpperCase().includes('RAZON SOCIAL') || 
+                                                key.toUpperCase().includes('RAZÓN SOCIAL')) {
+                                                nombre = String(rowData[key] || '').trim();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Si no se encontró "RAZON SOCIAL", buscar otros campos
+                                if (!nombre) {
+                                    nombre = extractNameFromRazonSocial(rowData, headerMap.razonSocial, col);
+                                }
                                 
                                 // Determinar el origen del correo
-                                let origen = `Fila ${row + 1}, Col ${col + 1}`;
+                                let origen = `Fila ${row + 1}`;
+                                if (headerMap.email !== -1) {
+                                    origen += `, Col EMAIL`;
+                                } else {
+                                    origen += `, Col ${col + 1}`;
+                                }
+                                
                                 if (emailsInCell.length > 1) {
                                     origen += ` (${emailsInCell.indexOf(email) + 1}/${emailsInCell.length})`;
                                 }
@@ -1750,13 +1880,14 @@ function processWorkbook(workbook, resolve, reject) {
                                 foundEmails.push({
                                     id: Date.now() + Math.random() + email,
                                     email: email.toLowerCase(),
-                                    nombre: nombre,
+                                    nombre: nombre || 'Sin nombre',
                                     row: row + 1,
                                     col: col + 1,
                                     selected: true, // Por defecto todos seleccionados
                                     status: 'pending',
                                     origen: origen,
-                                    esDividido: emailsInCell.length > 1
+                                    esDividido: emailsInCell.length > 1,
+                                    razonSocial: nombre
                                 });
                             }
                         }
@@ -1769,7 +1900,42 @@ function processWorkbook(workbook, resolve, reject) {
                             if (!seenEmails.has(email)) {
                                 seenEmails.add(email);
                                 
-                                let nombre = extractNameForEmail(email, cellValue, cells);
+                                // Obtener nombre del campo "RAZON SOCIAL"
+                                let nombre = '';
+                                
+                                if (headerMap.razonSocial !== -1) {
+                                    if (Array.isArray(rowData) && headerMap.razonSocial < rowData.length) {
+                                        nombre = String(rowData[headerMap.razonSocial] || '').trim();
+                                    } else if (typeof rowData === 'object') {
+                                        // Si es un objeto, buscar la propiedad correspondiente
+                                        const keys = Object.keys(rowData);
+                                        for (const key of keys) {
+                                            if (key.toUpperCase().includes('RAZON SOCIAL') || 
+                                                key.toUpperCase().includes('RAZÓN SOCIAL')) {
+                                                nombre = String(rowData[key] || '').trim();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Si no se encontró "RAZON SOCIAL", extraer del email
+                                if (!nombre) {
+                                    const namePart = email.split('@')[0];
+                                    if (namePart.includes('.')) {
+                                        const nameParts = namePart.split('.');
+                                        nombre = nameParts.map(part => 
+                                            part.charAt(0).toUpperCase() + part.slice(1)
+                                        ).join(' ');
+                                    } else if (namePart.includes('_')) {
+                                        const nameParts = namePart.split('_');
+                                        nombre = nameParts.map(part => 
+                                            part.charAt(0).toUpperCase() + part.slice(1)
+                                        ).join(' ');
+                                    } else {
+                                        nombre = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+                                    }
+                                }
                                 
                                 foundEmails.push({
                                     id: Date.now() + Math.random() + email,
@@ -1780,7 +1946,8 @@ function processWorkbook(workbook, resolve, reject) {
                                     selected: true,
                                     status: 'pending',
                                     origen: `Fila ${row + 1}, Col ${col + 1}`,
-                                    esDividido: false
+                                    esDividido: false,
+                                    razonSocial: nombre
                                 });
                             }
                         }
@@ -1790,6 +1957,7 @@ function processWorkbook(workbook, resolve, reject) {
         }
         
         console.log(`Correos encontrados: ${emailCount}, Únicos: ${foundEmails.length}, Celdas divididas: ${splitCellsCount}`);
+        console.log('Encabezados detectados:', headerMap);
         
         if (foundEmails.length === 0) {
             // Método alternativo si no se encontraron correos
@@ -1805,13 +1973,22 @@ function processWorkbook(workbook, resolve, reject) {
                 if (Array.isArray(rowData)) {
                     cells = rowData;
                 } else if (typeof rowData === 'object') {
-                    cells = Object.values(rowData);
+                    cells = rowData;
                 } else {
                     cells = [rowData];
                 }
                 
-                for (let col = 0; col < cells.length; col++) {
-                    let cellValue = cells[col];
+                for (let col = 0; col < (Array.isArray(cells) ? cells.length : Object.keys(cells).length); col++) {
+                    let cellValue;
+                    
+                    if (Array.isArray(cells)) {
+                        cellValue = cells[col];
+                    } else {
+                        const keys = Object.keys(cells);
+                        const key = col < keys.length ? keys[col] : null;
+                        cellValue = key ? cells[key] : null;
+                    }
+                    
                     if (cellValue !== null && cellValue !== undefined && cellValue !== '') {
                         cellValue = String(cellValue).trim();
                         
@@ -1827,8 +2004,45 @@ function processWorkbook(workbook, resolve, reject) {
                                 if (!alternativeSeen.has(email)) {
                                     alternativeSeen.add(email);
                                     
-                                    const nombre = extractNameForEmail(email, cellValue, cells);
-                                    let origen = `Fila ${row + 1}, Col ${col + 1}`;
+                                    // Buscar nombre en la misma fila
+                                    let nombre = '';
+                                    for (let searchCol = 0; searchCol < (Array.isArray(rowData) ? rowData.length : Object.keys(rowData).length); searchCol++) {
+                                        let searchValue;
+                                        
+                                        if (Array.isArray(rowData)) {
+                                            searchValue = rowData[searchCol];
+                                        } else {
+                                            const keys = Object.keys(rowData);
+                                            const key = searchCol < keys.length ? keys[searchCol] : null;
+                                            searchValue = key ? rowData[key] : null;
+                                        }
+                                        
+                                        if (searchValue && typeof searchValue === 'string' && 
+                                            !searchValue.includes('@') && 
+                                            searchValue.trim().length > 1 &&
+                                            (searchValue.toUpperCase().includes('SA') || 
+                                             searchValue.toUpperCase().includes('SL') ||
+                                             searchValue.toUpperCase().includes('S.A.') ||
+                                             searchValue.toUpperCase().includes('S.L.') ||
+                                             searchValue.includes(' '))) {
+                                            nombre = searchValue.trim();
+                                            break;
+                                        }
+                                    }
+                                    
+                                    // Si no se encontró nombre, extraer del email
+                                    if (!nombre) {
+                                        const namePart = email.split('@')[0];
+                                        nombre = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+                                    }
+                                    
+                                    let origen = `Fila ${row + 1}`;
+                                    if (headerMap.email !== -1) {
+                                        origen += `, Col EMAIL`;
+                                    } else {
+                                        origen += `, Col ${col + 1}`;
+                                    }
+                                    
                                     if (emailsInCell.length > 1) {
                                         origen += ` (${emailsInCell.indexOf(email) + 1}/${emailsInCell.length})`;
                                     }
@@ -1842,7 +2056,8 @@ function processWorkbook(workbook, resolve, reject) {
                                         selected: true,
                                         status: 'pending',
                                         origen: origen,
-                                        esDividido: emailsInCell.length > 1
+                                        esDividido: emailsInCell.length > 1,
+                                        razonSocial: nombre
                                     });
                                 }
                             }
@@ -1861,7 +2076,32 @@ function processWorkbook(workbook, resolve, reject) {
                                 if (!alternativeSeen.has(email)) {
                                     alternativeSeen.add(email);
                                     
-                                    const nombre = extractNameForEmail(email, cellValue, cells);
+                                    // Buscar nombre en la misma fila
+                                    let nombre = '';
+                                    for (let searchCol = 0; searchCol < (Array.isArray(rowData) ? rowData.length : Object.keys(rowData).length); searchCol++) {
+                                        let searchValue;
+                                        
+                                        if (Array.isArray(rowData)) {
+                                            searchValue = rowData[searchCol];
+                                        } else {
+                                            const keys = Object.keys(rowData);
+                                            const key = searchCol < keys.length ? keys[searchCol] : null;
+                                            searchValue = key ? rowData[key] : null;
+                                        }
+                                        
+                                        if (searchValue && typeof searchValue === 'string' && 
+                                            !searchValue.includes('@') && 
+                                            searchValue.trim().length > 1) {
+                                            nombre = searchValue.trim();
+                                            break;
+                                        }
+                                    }
+                                    
+                                    // Si no se encontró nombre, extraer del email
+                                    if (!nombre) {
+                                        const namePart = email.split('@')[0];
+                                        nombre = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+                                    }
                                     
                                     alternativeEmails.push({
                                         id: Date.now() + Math.random() + email,
@@ -1872,7 +2112,8 @@ function processWorkbook(workbook, resolve, reject) {
                                         selected: true,
                                         status: 'pending',
                                         origen: `Fila ${row + 1}, Col ${col + 1}`,
-                                        esDividido: false
+                                        esDividido: false,
+                                        razonSocial: nombre
                                     });
                                 }
                             }
@@ -1911,6 +2152,11 @@ function processWorkbook(workbook, resolve, reject) {
             document.getElementById('split-details').textContent = 
                 `${splitCellsCount} celdas fueron divididas en ${recipients.length} correos individuales.`;
             document.getElementById('split-count').textContent = splitCellsCount;
+        }
+        
+        // Mostrar información sobre encabezados detectados
+        if (headerMap.razonSocial !== -1) {
+            toastr.info(`Encabezado "RAZON SOCIAL" detectado en columna ${typeof headerMap.razonSocial === 'number' ? headerMap.razonSocial + 1 : headerMap.razonSocial}`);
         }
         
         resolve();
@@ -1960,7 +2206,12 @@ function displayRecipients() {
         splitInfo = ` (${splitCellsCount} celdas divididas)`;
     }
     
-    toastr.success(`Encontrados ${recipients.length} correos únicos${splitInfo} (${selectedRecipients.size} seleccionados)`);
+    let razonSocialInfo = '';
+    if (headerMap.razonSocial !== -1) {
+        razonSocialInfo = ` - Nombres extraídos de "RAZON SOCIAL"`;
+    }
+    
+    toastr.success(`Encontrados ${recipients.length} correos únicos${splitInfo} (${selectedRecipients.size} seleccionados)${razonSocialInfo}`);
 }
 
 function getFilteredRecipients() {
@@ -1973,6 +2224,7 @@ function getFilteredRecipients() {
         filtered = filtered.filter(recipient => 
             recipient.email.toLowerCase().includes(searchTerm) || 
             recipient.nombre.toLowerCase().includes(searchTerm) ||
+            (recipient.razonSocial && recipient.razonSocial.toLowerCase().includes(searchTerm)) ||
             recipient.origen.toLowerCase().includes(searchTerm)
         );
     }
@@ -2012,7 +2264,11 @@ function createRecipientRow(recipient, index) {
             ${recipient.email}
             ${recipient.esDividido ? '<span class="email-badge"><i class="fas fa-code-branch"></i> Dividido</span>' : ''}
         </td>
-        <td>${recipient.nombre}</td>
+        <td>
+            ${recipient.nombre || recipient.razonSocial || 'Sin nombre'}
+            ${recipient.razonSocial && recipient.razonSocial !== recipient.nombre ? 
+              `<br><small style="color: var(--gray); font-size: 0.8rem;">RAZON SOCIAL: ${recipient.razonSocial}</small>` : ''}
+        </td>
         <td>${recipient.origen}</td>
         <td>
             <span class="status ${isSelected ? 'selected' : 'pending'}">
@@ -2257,6 +2513,7 @@ function clearRecipients() {
             recipients = [];
             selectedRecipients.clear();
             splitCellsCount = 0;
+            headerMap = {};
             
             document.getElementById('recipients-body').innerHTML = '';
             document.getElementById('recipients-preview').classList.add('hidden');
@@ -2275,20 +2532,20 @@ function clearRecipients() {
 
 function downloadTemplate() {
     const data = [
-        ['Nombre', 'Correo Electrónico', 'Empresa', 'Teléfono'],
-        ['Juan Pérez', 'juan.perez@ejemplo.com', 'TechCorp', '555-1234'],
-        ['María García', 'maria.garcia@ejemplo.com', 'Innovatech', '555-5678'],
-        ['Carlos López', 'carlos.lopez@ejemplo.com', 'Digital Solutions', '555-9012'],
-        ['Ana Rodríguez', 'ana.rodriguez@ejemplo.com, pedro@empresa.com', 'WebMasters', '555-3456'],
-        ['Pedro Sánchez; luis@empresa.com', 'pedro.sanchez@ejemplo.com', 'NetSystems', '555-7890']
+        ['RAZON SOCIAL', 'Correo Electrónico', 'Empresa', 'Teléfono'],
+        ['TECHCORP SA', 'juan.perez@ejemplo.com', 'TechCorp', '555-1234'],
+        ['INNOVATECH SL', 'maria.garcia@ejemplo.com', 'Innovatech', '555-5678'],
+        ['DIGITAL SOLUTIONS S.A.', 'carlos.lopez@ejemplo.com', 'Digital Solutions', '555-9012'],
+        ['WEBMASTERS COMPANY', 'ana.rodriguez@ejemplo.com, pedro@empresa.com', 'WebMasters', '555-3456'],
+        ['NETSYSTEMS LTD; LUIS@EMPRESA.COM', 'pedro.sanchez@ejemplo.com', 'NetSystems', '555-7890']
     ];
     
     const ws = XLSX.utils.aoa_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Destinatarios");
     
-    XLSX.writeFile(wb, "plantilla_destinatarios_multicorreos.xlsx");
-    toastr.success('Plantilla con ejemplos de múltiples correos descargada');
+    XLSX.writeFile(wb, "plantilla_destinatarios_con_razon_social.xlsx");
+    toastr.success('Plantilla con RAZON SOCIAL descargada');
 }
 
 // Funciones de navegación
@@ -2661,8 +2918,11 @@ async function sendNextEmail(recipientsToSend) {
     const subject = document.getElementById('email-subject').value;
     let message = document.getElementById('email-message').value;
     
+    // Usar el nombre de "RAZON SOCIAL" si está disponible
+    const nombre = recipient.razonSocial || recipient.nombre || 'Estimado cliente';
+    
     message = message
-        .replace(/{nombre}/g, recipient.nombre)
+        .replace(/{nombre}/g, nombre)
         .replace(/{email}/g, recipient.email)
         .replace(/{fecha}/g, new Date().toLocaleDateString('es-ES'))
         .replace(/{numero}/g, (currentIndex + 1).toString().padStart(3, '0'))
@@ -2673,7 +2933,7 @@ async function sendNextEmail(recipientsToSend) {
     const templateId = localStorage.getItem('mailmaster_emailjs_template_id');
     
     const templateParams = {
-        to_name: recipient.nombre,
+        to_name: nombre,
         to_email: recipient.email,
         from_name: senderName,
         from_email: senderEmail,
@@ -2689,7 +2949,7 @@ async function sendNextEmail(recipientsToSend) {
         updateRecipientStatus(recipient.id, 'success');
         
         // Mostrar progreso en consola
-        console.log(`✅ Correo ${currentIndex + 1}/${recipientsToSend.length} enviado a: ${recipient.email}`);
+        console.log(`✅ Correo ${currentIndex + 1}/${recipientsToSend.length} enviado a: ${recipient.email} (${nombre})`);
         
     } catch (error) {
         failedCount++;
@@ -2897,22 +3157,15 @@ window.addEventListener('load', function() {
                 title: '¡Bienvenido a MailMaster PRO!',
                 html: `
                     <div style="text-align: left; line-height: 1.6;">
-                        <p><strong>NUEVA FUNCIÓN: Detección de múltiples correos en una celda</strong></p>
-                        <p>Ahora el sistema puede detectar correos separados por:</p>
-                        <ul style="margin-left: 20px; margin-top: 10px;">
-                            <li>Comas: correo1@ejemplo.com, correo2@ejemplo.com</li>
-                            <li>Puntos y comas: correo1@ejemplo.com; correo2@ejemplo.com</li>
-                            <li>Saltos de línea</li>
-                            <li>Espacios múltiples</li>
-                            <li>Pipes (|) y dos puntos (:)</li>
-                        </ul>
+                        <p><strong>NUEVA FUNCIÓN: Detección de "RAZON SOCIAL"</strong></p>
+                        <p>Ahora el sistema detecta automáticamente el encabezado <strong>"RAZON SOCIAL"</strong> en el Excel y lo usa para personalizar los correos.</p>
                         <br>
                         <p><strong>Características principales:</strong></p>
                         <ol style="margin-left: 20px; margin-top: 10px;">
-                            <li><strong>Detección inteligente:</strong> Encuentra correos incluso en celdas combinadas</li>
-                            <li><strong>Selección individual:</strong> Elige exactamente a quiénes enviar correos</li>
+                            <li><strong>Detección automática:</strong> Encuentra "RAZON SOCIAL" en cualquier columna</li>
+                            <li><strong>Nombres personalizados:</strong> Usa los nombres reales de las empresas</li>
+                            <li><strong>Múltiples correos en celda:</strong> Detecta correos separados por comas, puntos y comas, etc.</li>
                             <li><strong>Envío real:</strong> Usa EmailJS para enviar correos reales</li>
-                            <li><strong>Personalización completa:</strong> Usa etiquetas para personalizar cada correo</li>
                             <li><strong>Control total:</strong> Selecciona, filtra y organiza tus destinatarios</li>
                         </ol>
                         <br>
@@ -2920,7 +3173,8 @@ window.addEventListener('load', function() {
                             <i class="fas fa-lightbulb"></i> 
                             <strong>PRIMEROS PASOS:</strong> 
                             <ol style="margin-left: 20px;">
-                                <li>Carga tu archivo Excel con correos (incluso si están en la misma celda)</li>
+                                <li>Carga tu archivo Excel con columna "RAZON SOCIAL"</li>
+                                <li>El sistema detectará automáticamente los nombres</li>
                                 <li>Selecciona individualmente a quiénes enviar (usa los checkboxes)</li>
                                 <li>Configura EmailJS en el Paso 2</li>
                             </ol>
@@ -2940,4 +3194,3 @@ window.addEventListener('load', function() {
     </script>
 </body>
 </html>
-
